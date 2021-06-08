@@ -1,52 +1,89 @@
 <template>
   <div id="app">
-    <!-- <img alt="Vue logo" src="./assets/logo.png">
-    <BlocklyComponent id="blockly1">
-      <block type="controls_ifelse"></block>
-      <block type="logic_compare"></block>
-      <block type="logic_operation"></block>
-      <block type="controls_repeat_ext">
-          <value name="TIMES">
-              <shadow type="math_number">
-                  <field name="NUM">10</field>
-              </shadow>
-          </value>
-      </block>
-      <block type="logic_operation"></block>
-      <block type="logic_negate"></block>
-      <block type="logic_boolean"></block>
-      <block type="logic_null" disabled="true"></block>
-      <block type="logic_ternary"></block>
-      <block type="text_charAt">
-          <value name="VALUE">
-              <block type="variables_get">
-                  <field name="VAR">text</field>
-              </block>
-          </value>
-      </block>
-    </BlocklyComponent> -->
- 
-    <BlocklyComponent id="blockly2" :options="options" ref="foo" :class="block_class"></BlocklyComponent>
+    <nav>
+      <div id="navigation-bar">
+        <span class="logo-container">
+          <div id="nav-projects">
+            <div id="nav-back-arrow">❮</div>
+            <img
+              class="logo"
+              src="./assets/piper_make_logo.svg"
+              alt="Piper Make Logo"
+              style="width: 120px; height: 48px"
+            />
+          </div>
+        </span>
+      </div>
+    </nav>
+
+    <div>
+      <div class="device-button">
+        <div class="controlFlow">
+          <div
+            id="device-load"
+            class="icon top-button inactive"
+            style="display: block"
+          >
+            Start
+          </div>
+          <div
+            id="device-stop"
+            class="icon top-button inactive"
+            style="display: none"
+          >
+            Stop
+          </div>
+        </div>
+      </div>
+
+      <div class="connect-control">
+        <div id="device-connect" class="icon bottom-button start">Connect</div>
+      </div>
+
+      <div
+        id="visualizer-container"
+        class="SidePanelBottom tabs_closed bottomTabSelected"
+      >
+        <div
+          id="visualizer-file"
+          class="contentTabs fileBottomTab"
+          style="display: block"
+        >
+          <p>Raspberry Pi<br />Pico</p>
+          <button id="digital-view-toggle" style="display: block">
+            <svg
+              width="14px"
+              height="14px"
+              viewBox="0 0 10 10"
+              id="digital-view-toggle-dot"
+            >
+              <circle r="5" cx="5" cy="5" fill="#000" stroke="none"></circle>
+            </svg>
+          </button>
+          <div id="digital-view-module-image" >
+            <img
+              src="./assets/pico.png" 
+              style='height: 100%; width: 100%; object-fit: contain'
+            />
+          </div>
+        </div>
+        <div class="tabsContainer">
+          <div id="tab-bottom-file" class="tabBottom selected">
+            Digital View
+          </div>
+          <div id="tab-bottom-python" class="tabBottom">Python</div>
+        </div>
+      </div>
+    </div>
+
     
-    <div class="tabs" @click="showCodeArea()">
-        <div id="side-panel-control" class="control" style="display: flex;">
-          <div class="three-dot"></div>
-          <div class="three-dot"></div>
-          <div class="three-dot"></div>
-        </div>
-    </div>
-
-    <!-- <transition name="fade"> -->
-    <div id="code" :class="code_class">
-        <div>
-          <button class="btn btn-primary" @click="showCode()">Show Code</button>
-          <br/><br/>
-          <pre v-html="code"></pre>
-        </div>
-    </div>
-    <!-- </transition> -->
+    <BlocklyComponent
+      id="blockly2"
+      :options="options"
+      ref="foo"
+      style="left: 0px; top: 55px; width: 1842px; height: 949px;"
+    ></BlocklyComponent>
   </div>
-
 </template>
 
 <script>
@@ -86,8 +123,6 @@ export default {
   },
   data() {
     return {
-      code_class: "",
-      code: "",
       options: {
         media: "media/",
         grid: {
@@ -137,34 +172,10 @@ export default {
       },
     };
   },
-  computed: {
-    block_class() {
-      if (this.code_class == "") {
-        return "";
-      }
-      else if (this.code_class == "code_hide") {
-        return "block_large";
-      }
-      else {
-        return "block_small";
-      }
-    }
-  },
+  computed: {},
   methods: {
     showCode() {
       this.code = BlocklyPY.workspaceToCode(this.$refs["foo"].workspace);
-    },
-
-    showCodeArea() {
-      if (this.code_class == "code_hide") {
-        this.code_class = "code_show";
-      }
-      else if (this.code_class == "code_show") {
-        this.code_class = "code_hide";
-      }
-      else {      // init value 
-        this.code_class = "code_hide";
-      }
     },
   },
 };
@@ -180,130 +191,297 @@ export default {
 
 html,
 body {
+  font-family: Montserrat, sans-serif;
+  font-size: 16px;
+  color: #777;
+  padding: 0;
   margin: 0;
+  height: 100vh;
+  overflow-y: auto;
 }
 
-#code {
+/* begin here!!!!!!!!!!!!!!!!! */
+
+* {
+  box-sizing: border-box;
+}
+
+nav {
+  display: block;
+  width: 100%;
+  height: 60px;
+}
+
+#navigation-bar {
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  width: 100%;
+  height: 60px;
+  z-index: 500;
   display: flex;
-  flex-flow: row;
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 50%;
-  height: 100%;
-  margin: 0;
-  background-color: beige;
+  justify-content: space-around;
+  font-weight: 700;
+  background-color: #333;
 }
 
-.code_hide {
-  animation: animation_code_hide 1s;
-  -webkit-animation: animation_code_hide 1s; /* Safari and Chrome */
-  animation-fill-mode:forwards;
-  -webkit-animation-fill-mode:forwards;
-}
-
-.code_show {
-  animation: animation_code_show 1s;
-  -webkit-animation: animation_code_show 1s; /* Safari and Chrome */
-  animation-fill-mode:forwards;
-  -webkit-animation-fill-mode:forwards;
-}
-
-@keyframes animation_code_hide
-{
-	0%   {width: 50%;}
-	100% {width: 0%;}
-}
-
-@keyframes animation_code_show
-{
-	0%   {width: 0%;}
-	100% {width: 50%;}
-}
-
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.4s;
-  width: 50%;
-}
-.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
-  opacity: 0;
-  width: 0%;
-}
-
-/* #blockly1 {
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 50%;
-  height: 50%;
-} */
-
-#blockly2 {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 50%;
-  height: 100%;
-}
-
-.block_small {
-  animation: animation_block_small 1s;
-  -webkit-animation: animation_block_small 1s; /* Safari and Chrome */
-  animation-fill-mode:forwards;
-  -webkit-animation-fill-mode:forwards;
-}
-
-.block_large {
-  animation: animation_block_large 1s;
-  -webkit-animation: animation_block_large 1s; /* Safari and Chrome */
-  animation-fill-mode:forwards;
-  -webkit-animation-fill-mode:forwards;
-}
-
-@keyframes animation_block_small
-{
-	0%   {width: 100%;}
-	100% {width: 50%;}
-}
-
-@keyframes animation_block_large
-{
-	0%   {width: 50%;}
-	100% {width: 100%;}
-}
-
-.tabs {
-  display: flex;
-  flex-flow: row;
-  transform: rotate(180deg);
-  writing-mode: vertical-lr;
-  padding-left: 0;
-  z-index: 110;
-  position: absolute;
-  top: 38vh;
-  left: 48%;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-  clip-path: inset(-15px -15px -15px 0);
-}
-
-.tabs > .control {
-  width: 32px;
-  height: 80px;
-  background-color: #fff;
-  border-bottom-right-radius: 10px;
-  border-top-right-radius: 10px;
-  margin-right: 1px;
-  display: flex;
-  justify-content: space-evenly;
-  align-items: center;
+#navigation-bar div {
+  position: relative;
+  color: #ccc;
+  font-weight: 400;
+  border: none;
+  font-size: 18px;
+  line-height: 60px;
   cursor: pointer;
+  display: flex;
 }
 
-.three-dot {
-  height: 12px;
-  width: 12px;
-  background-color: #ccc;
-  border-radius: 50%;
+#navigation-bar > .logo-container {
+  flex-grow: 1;
+  text-align: left;
+  display: flex;
+  justify-content: flex-start;
 }
+
+#navigation-bar .logo {
+  width: 120px;
+  margin: 6px 20px;
+}
+
+#nav-projects {
+  color: #aaa;
+  font-size: 24px;
+}
+
+#nav-projects,
+#nav-settings {
+  margin: 0 15px;
+}
+
+#nav-projects:focus,
+#nav-projects:hover,
+#nav-settings:focus,
+#nav-settings:hover {
+  transform: scale(1.1);
+  transition: transform 0.25s;
+}
+
+#nav-settings:focus,
+#nav-settings:hover {
+  font-weight: 700;
+}
+
+#nav-sidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 340px;
+  height: 100vh;
+  z-index: 550;
+  background: #fff;
+  padding: 20px 50px;
+  text-align: center;
+}
+
+#nav-sidebar p {
+  font-size: 21px;
+  color: #333;
+}
+
+.device-button {
+  width: 160px;
+  height: 55px;
+  background: #fff;
+  position: absolute;
+  z-index: 65;
+}
+
+.controlFlow {
+  top: -10px;
+  z-index: 80;
+  position: relative;
+  width: 160px;
+  padding: 10px 10px 0 0;
+  background: #fff;
+}
+
+.icon {
+  width: 100%;
+  height: 100%;
+  fill: #fff;
+  margin: 0 auto;
+  font-family: Montserrat, sans-serif;
+  color: #fff;
+  font-size: 25px;
+  text-align: center;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0 2px 5px 0;
+  stroke: #fff;
+  border: 4px solid #888;
+  background: #eee;
+  border-radius: 0 10px 10px 0;
+  border-left: none;
+}
+
+.icon.start {
+  border-color: #2b0;
+  color: #2b0;
+  background: #efe;
+}
+
+.icon.start:hover {
+  border-color: #090;
+  color: #090;
+  background: #cfc;
+}
+
+.icon.top-button {
+  font-size: 21px;
+  line-height: 21px;
+  text-transform: uppercase;
+  font-weight: 700;
+  height: 40px;
+  margin-top: 8px;
+  padding-top: 6px;
+}
+
+.icon.bottom-button {
+  height: 40px;
+  font-weight: 700;
+  font-size: 16px;
+  text-transform: uppercase;
+  border-left: none;
+  margin-top: 8px;
+}
+
+.icon.inactive {
+  background: #eee;
+  color: #888;
+}
+
+.connect-control {
+  position: absolute;
+  z-index: 90;
+  bottom: 0;
+  width: 160px;
+  background: #fff;
+  padding: 0 10px 10px 0;
+}
+
+.tabs_closed {
+  width: calc(100vw - 175px);
+}
+
+.bottomTabSelected {
+  background-color: #fff;
+  box-shadow: 0 -5px 10px rgba(0, 0, 0, 0.1);
+}
+
+.SidePanelBottom {
+  position: absolute;
+  bottom: 0;
+  z-index: 60;
+  left: 160px;
+  flex-direction: column;
+}
+
+.SidePanelBottom,
+.SidePanelBottom > .contentTabs {
+  align-items: center;
+  justify-content: center;
+}
+
+.SidePanelBottom>.tabsContainer {
+                width: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: space-around;
+                padding: 0 10px;
+                position: relative;
+                z-index: 15;
+                border-top: none
+            }
+
+.tabBottom {
+                font-size: 14px;
+                font-weight: 700;
+                text-transform: uppercase;
+                color: #000;
+                width: 100%;
+                height: 39px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0 4px;
+                margin-right: 10px;
+                border-radius: 6px 6px 0 0;
+                background-color: #ddd;
+                color: #333;
+                white-space: pre;
+                position: relative
+            }
+
+            .tabBottom:hover {
+                cursor: pointer;
+                height: 49px;
+                margin-top: -10px
+            }
+
+            .tabBottom.selected {
+                font-size: 15px;
+                background-color: #bbb;
+                height: 49px;
+                margin-top: -10px
+            }
+
+            .tabBottom:last-child {
+                margin-right: 0
+            }
+
+.contentTabs {
+  width: 100%;
+  display: none;
+}
+
+#visualizer-file {
+  padding: 10px;
+  min-height: 135px;
+  vertical-align: bottom;
+  max-height: 185px;
+}
+
+.fileBottomTab p {
+  font-size: 22px;
+  font-weight: 700;
+  color: #000;
+  position: absolute;
+  left: 20px;
+  top: 0;
+  margin-top: 10px;
+}
+
+#digital-view-toggle {
+  position: absolute;
+  top: 70px;
+  left: 20px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50px;
+  border: 2px solid #000;
+  width: 22px;
+  background: 0 0;
+  margin-top: 20px;
+}
+
+#digital-view-module-image {
+  max-width: 635px;
+  min-width: 440px;
+  margin-left: max(40px, calc((100% - 635px) / 2));
+  box-sizing: border-box;
+}
+
+/* end here!!!! */
 </style>
