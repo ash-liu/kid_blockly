@@ -2,15 +2,12 @@
   <div>
     <div class="blocklyDiv" ref="blocklyDiv"></div>
     <!-- Toolbox Definition -->
-    <xml
-      id="toolbox-categories"
-      style="display: none"
-    >
-      <toolboxlabel name="Custom Toolbox" colour="darkslategrey"></toolboxlabel>
+    <xml id="toolbox-categories" style="display: none">
+      <!-- <toolboxlabel name="Custom Toolbox" colour="darkslategrey"></toolboxlabel> -->
       <category
         css-icon="customIcon fa fa-microchip"
-        name="Logic"
-        categorystyle="logic_category"
+        name="芯片"
+        categorystyle="chip_category"
       >
         <block type="controls_if"></block>
         <block type="logic_compare"></block>
@@ -20,10 +17,11 @@
         <block type="logic_null" disabled="true"></block>
         <block type="logic_ternary"></block>
       </category>
+
       <category
-        css-icon="customIcon fa fa-undo"
-        name="Loops"
-        categorystyle="loop_category"
+        css-icon="customIcon fa fa-random"
+        name="逻辑"
+        categorystyle="logic_category"
       >
         <block type="controls_repeat_ext">
           <value name="TIMES">
@@ -54,7 +52,12 @@
         <block type="controls_forEach"></block>
         <block type="controls_flow_statements"></block>
       </category>
-      <category name="Math" categorystyle="math_category">
+
+      <category
+        css-icon="customIcon fa fa-recycle"
+        name="循环"
+        categorystyle="loops_category"
+      >
         <block type="math_number" gap="32">
           <field name="NUM">123</field>
         </block>
@@ -155,7 +158,12 @@
           </value>
         </block>
       </category>
-      <category name="Text" categorystyle="text_category">
+
+      <category
+        css-icon="customIcon fa fa-question-circle"
+        name="变量"
+        categorystyle="variable_category"
+      >
         <block type="text"></block>
         <block type="text_multiline"></block>
         <block type="text_join"></block>
@@ -258,7 +266,12 @@
           </value>
         </block>
       </category>
-      <category name="Lists" categorystyle="list_category">
+
+      <category
+        css-icon="customIcon fa fa-percent"
+        name="类型值"
+        categorystyle="value_category"
+      >
         <block type="lists_create_with">
           <mutation items="0"></mutation>
         </block>
@@ -310,7 +323,12 @@
         <block type="lists_sort"></block>
         <block type="lists_reverse"></block>
       </category>
-      <category name="Colour" categorystyle="colour_category">
+
+      <category
+        css-icon="customIcon fa fa-list"
+        name="列表"
+        categorystyle="list_category"
+      >
         <block type="colour_picker"></block>
         <block type="colour_random"></block>
         <block type="colour_rgb">
@@ -348,15 +366,29 @@
           </value>
         </block>
       </category>
-      <sep></sep>
+
       <category
-        name="Variables"
-        categorystyle="variable_category"
+        css-icon="customIcon fa fa-recycle"
+        name="函数"
+        categorystyle="function_category"
         custom="VARIABLE"
       ></category>
       <category
-        name="Functions"
-        categorystyle="procedure_category"
+        css-icon="customIcon fa fa-thermometer-full"
+        name="传感器"
+        categorystyle="sensor_category"
+        custom="PROCEDURE"
+      ></category>
+      <category
+        css-icon="customIcon fa fa-podcast"
+        name="执行器"
+        categorystyle="actor_category"
+        custom="PROCEDURE"
+      ></category>
+      <category
+        css-icon="customIcon fa fa-volume-up"
+        name="声音"
+        categorystyle="voice_category"
         custom="PROCEDURE"
       ></category>
     </xml>
@@ -388,8 +420,8 @@
  */
 
 import Blockly from "blockly";
-import "./custom_category_es6.js";
-import "./toolbox_label_es6";
+import "./custom_category.js";
+import "./custom_theme.js";
 
 export default {
   name: "BlocklyComponent",
@@ -401,8 +433,9 @@ export default {
   },
   mounted() {
     this.workspace = Blockly.inject(this.$refs["blocklyDiv"], {
-        toolbox: document.getElementById('toolbox-categories'),
-      });
+      toolbox: document.getElementById("toolbox-categories"),
+      theme: Blockly.Themes.pico,
+    });
   },
 };
 </script>
