@@ -17,6 +17,7 @@
     </nav>
 
     <div>
+      <!-- 设备连接&控制按钮 -->
       <div class="device-button">
         <div class="controlFlow">
           <div
@@ -35,22 +36,27 @@
           </div>
         </div>
       </div>
-
       <div class="connect-control">
         <div id="device-connect" class="icon bottom-button start">Connect</div>
       </div>
 
+      <!-- 下方多页面控制区 -->
       <div
         id="visualizer-container"
-        class="SidePanelBottom tabs_closed bottomTabSelected"
+        class="SidePanelBottom tabs_closed"
+        :class="{
+          bottomTabSelected: isTabDigtalViewSelected || isTabPythonSelected,
+        }"
       >
+        <!-- IO图 -->
         <div
           id="visualizer-file"
           class="contentTabs fileBottomTab"
           style="display: block"
+          v-show="isTabDigtalViewSelected"
         >
           <p>Raspberry Pi<br />Pico</p>
-          <button id="digital-view-toggle" style="display: block">
+          <!-- <button id="digital-view-toggle" style="display: block">
             <svg
               width="14px"
               height="14px"
@@ -59,29 +65,64 @@
             >
               <circle r="5" cx="5" cy="5" fill="#000" stroke="none"></circle>
             </svg>
-          </button>
-          <div id="digital-view-module-image" >
+          </button> -->
+          <div id="digital-view-module-image">
             <img
-              src="./assets/pico.png" 
-              style='height: 100%; width: 100%; object-fit: contain'
+              src="./assets/pico.png"
+              style="height: 100%; width: 100%; object-fit: contain"
             />
           </div>
         </div>
+
+        <!-- python代码 -->
+        <div
+          id="visualizer-python"
+          class="contentTabs pythonBottomTab"
+          style="display: block"
+          v-show="isTabPythonSelected"
+        >
+          <div class="tabs">
+            <div id="python-panel-control" class="control">
+              <div class="three-dot"></div>
+              <div class="three-dot"></div>
+              <div class="three-dot"></div>
+            </div>
+          </div>
+          <div>
+            <div
+              id="python-editor"
+              class="aceEditorContainer ace_editor ace_hidpi ace-iplastic"
+            >
+            </div>
+          </div>
+        </div>
+
         <div class="tabsContainer">
-          <div id="tab-bottom-file" class="tabBottom selected">
+          <div
+            id="tab-bottom-file"
+            class="tabBottom"
+            :class="{ selected: isTabDigtalViewSelected }"
+            @click="onTabDigtalViewClicked"
+          >
             Digital View
           </div>
-          <div id="tab-bottom-python" class="tabBottom">Python</div>
+          <div
+            id="tab-bottom-python"
+            class="tabBottom"
+            :class="{ selected: isTabPythonSelected }"
+            @click="onTabPythonClicked"
+          >
+            Python
+          </div>
         </div>
       </div>
     </div>
 
-    
     <BlocklyComponent
-      id="blockly2"
-      :options="options"
+      id="blockly"
       ref="foo"
-      style="left: 0px; top: 55px; width: 1842px; height: 949px;"
+      style="left: 0px; top: 55px; width: 1842px; height: 949px" 
+      @blocklyUpdate="blocklyUpdate"
     ></BlocklyComponent>
   </div>
 </template>
@@ -111,8 +152,10 @@
  */
 
 import BlocklyComponent from "./components/BlocklyComponent.vue";
-import "./blocks/stocks";
 import "./prompt";
+
+import ace from "ace-builds"
+import 'ace-builds/webpack-resolver';
 
 import BlocklyPY from "blockly/python";
 
@@ -123,60 +166,40 @@ export default {
   },
   data() {
     return {
-      options: {
-        media: "media/",
-        grid: {
-          spacing: 25,
-          length: 3,
-          colour: "#ccc",
-          snap: true,
-        },
-        toolbox: `<xml>
-          <category name="Logic" colour="%{BKY_LOGIC_HUE}">
-            <block type="controls_if"></block>
-            <block type="logic_compare"></block>
-            <block type="logic_operation"></block>
-            <block type="logic_negate"></block>
-            <block type="logic_boolean"></block>
-          </category>
-          <category name="Loops" colour="%{BKY_LOOPS_HUE}">
-            <block type="controls_repeat_ext">
-              <value name="TIMES">
-                <block type="math_number">
-                  <field name="NUM">10</field>
-                </block>
-              </value>
-            </block>
-            <block type="controls_whileUntil"></block>
-          </category>
-          <category name="Math" colour="%{BKY_MATH_HUE}">
-            <block type="math_number">
-              <field name="NUM">123</field>
-            </block>
-            <block type="math_arithmetic"></block>
-            <block type="math_single"></block>
-          </category>
-          <category name="Text" colour="%{BKY_TEXTS_HUE}">
-            <block type="text"></block>
-            <block type="text_length"></block>
-            <block type="text_print"></block>
-          </category>
-          <category name="Variables" custom="VARIABLE" colour="%{BKY_VARIABLES_HUE}">
-            </category>
-          <category name="Stocks" colour="%{BKY_LOOPS_HUE}">
-            <block type="stock_buy_simple"></block>
-            <block type="stock_buy_prog"></block>
-            <block type="stock_fetch_price"></block>
-          </category>
-        </xml>`,
-      },
+      editor: null,
+      code: "",
+      isTabDigtalViewSelected: false,
+      isTabPythonSelected: false,
     };
   },
   computed: {},
   methods: {
-    showCode() {
-      this.code = BlocklyPY.workspaceToCode(this.$refs["foo"].workspace);
+    onTabDigtalViewClicked() {
+      this.isTabDigtalViewSelected = !this.isTabDigtalViewSelected;
+      this.isTabPythonSelected = false;
     },
+
+    onTabPythonClicked() {
+      this.isTabPythonSelected = !this.isTabPythonSelected;
+      this.isTabDigtalViewSelected = false;
+    },
+
+    blocklyUpdate() {
+      this.code = BlocklyPY.workspaceToCode(this.$refs["foo"].workspace);
+      this.editor.setValue(this.code)
+    }
+  },
+  mounted() {
+    this.editor = ace.edit("visualizer-python", {
+      readOnly: true,
+      highlightActiveLine: false
+    });
+    // ace.config.set(
+    //   "basePath", 
+    //   "https://cdn.jsdelivr.net/npm/ace-builds@1.4.3/src-noconflict/"
+    // )
+    this.editor.setTheme("ace/theme/monokai");
+    this.editor.session.setMode("ace/mode/python");
   },
 };
 </script>
@@ -394,52 +417,52 @@ nav {
   justify-content: center;
 }
 
-.SidePanelBottom>.tabsContainer {
-                width: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: space-around;
-                padding: 0 10px;
-                position: relative;
-                z-index: 15;
-                border-top: none
-            }
+.SidePanelBottom > .tabsContainer {
+  width: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 10px;
+  position: relative;
+  z-index: 15;
+  border-top: none;
+}
 
 .tabBottom {
-                font-size: 14px;
-                font-weight: 700;
-                text-transform: uppercase;
-                color: #000;
-                width: 100%;
-                height: 39px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 0 4px;
-                margin-right: 10px;
-                border-radius: 6px 6px 0 0;
-                background-color: #ddd;
-                color: #333;
-                white-space: pre;
-                position: relative
-            }
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #000;
+  width: 100%;
+  height: 39px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  margin-right: 10px;
+  border-radius: 6px 6px 0 0;
+  background-color: #ddd;
+  color: #333;
+  white-space: pre;
+  position: relative;
+}
 
-            .tabBottom:hover {
-                cursor: pointer;
-                height: 49px;
-                margin-top: -10px
-            }
+.tabBottom:hover {
+  cursor: pointer;
+  height: 49px;
+  margin-top: -10px;
+}
 
-            .tabBottom.selected {
-                font-size: 15px;
-                background-color: #bbb;
-                height: 49px;
-                margin-top: -10px
-            }
+.tabBottom.selected {
+  font-size: 15px;
+  background-color: #bbb;
+  height: 49px;
+  margin-top: -10px;
+}
 
-            .tabBottom:last-child {
-                margin-right: 0
-            }
+.tabBottom:last-child {
+  margin-right: 0;
+}
 
 .contentTabs {
   width: 100%;
@@ -483,5 +506,51 @@ nav {
   box-sizing: border-box;
 }
 
+.pythonBottomTab {
+  height: 206px;
+  position: relative;
+  padding-top: 5px;
+}
+
+.tabs {
+  display: flex;
+  flex-flow: row;
+  transform: rotate(180deg);
+  writing-mode: vertical-lr;
+  padding-left: 0;
+  z-index: 110;
+  position: absolute;
+  top: 38vh;
+  left: -32px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  clip-path: inset(-15px -15px -15px 0);
+}
+
+.contentTabs > .tabs {
+  top: -55px;
+  transform: rotate(-90deg);
+  left: calc(50% - 20px);
+}
+
+.tabs > .control {
+  width: 32px;
+  height: 80px;
+  background-color: #fff;
+  border-bottom-right-radius: 10px;
+  border-top-right-radius: 10px;
+  margin-right: 1px;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  cursor: pointer;
+}
+
+.three-dot {
+  height: 12px;
+  width: 12px;
+  background-color: #ccc;
+  border-radius: 50%;
+}
 /* end here!!!! */
 </style>

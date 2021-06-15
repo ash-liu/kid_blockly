@@ -9,19 +9,30 @@
         name="芯片"
         categorystyle="chip_category"
       >
-        <block type="controls_if"></block>
-        <block type="logic_compare"></block>
-        <block type="logic_operation"></block>
-        <block type="logic_negate"></block>
-        <block type="logic_boolean"></block>
-        <block type="logic_null" disabled="true"></block>
-        <block type="logic_ternary"></block>
+        <block type="on_start"></block>
+        <block type="wait"></block>
+        <block type="pin_on_off"></block>
+        <block type="pin_check"></block>
+        <block type="pin_analog_read"></block>
       </category>
 
       <category
         css-icon="customIcon fa fa-random"
         name="逻辑"
         categorystyle="logic_category"
+      >
+        <block type="controls_if"></block>
+        <block type="controls_ifelse"></block>
+        <block type="logic_compare"></block>
+        <block type="logic_operation"></block>
+        <block type="logic_negate"></block>
+        <block type="logic_boolean"></block>
+      </category>
+
+      <category
+        css-icon="customIcon fa fa-recycle"
+        name="循环"
+        categorystyle="loop_category"
       >
         <block type="controls_repeat_ext">
           <value name="TIMES">
@@ -30,7 +41,7 @@
             </shadow>
           </value>
         </block>
-        <block type="controls_repeat" disabled="true"></block>
+        <!-- <block type="controls_repeat"></block> -->
         <block type="controls_whileUntil"></block>
         <block type="controls_for">
           <value name="FROM">
@@ -54,9 +65,9 @@
       </category>
 
       <category
-        css-icon="customIcon fa fa-recycle"
-        name="循环"
-        categorystyle="loops_category"
+        css-icon="customIcon fa fa-question-circle"
+        name="数学"
+        categorystyle="math_category"
       >
         <block type="math_number" gap="32">
           <field name="NUM">123</field>
@@ -73,21 +84,19 @@
             </shadow>
           </value>
         </block>
-        <block type="math_single">
-          <value name="NUM">
+        <block type="math_random_int">
+          <value name="FROM">
             <shadow type="math_number">
-              <field name="NUM">9</field>
+              <field name="NUM">1</field>
+            </shadow>
+          </value>
+          <value name="TO">
+            <shadow type="math_number">
+              <field name="NUM">100</field>
             </shadow>
           </value>
         </block>
-        <block type="math_trig">
-          <value name="NUM">
-            <shadow type="math_number">
-              <field name="NUM">45</field>
-            </shadow>
-          </value>
-        </block>
-        <block type="math_constant"></block>
+        <block type="math_random_float"></block>
         <block type="math_number_property">
           <value name="NUMBER_TO_CHECK">
             <shadow type="math_number">
@@ -132,37 +141,12 @@
             </shadow>
           </value>
         </block>
-        <block type="math_random_int">
-          <value name="FROM">
-            <shadow type="math_number">
-              <field name="NUM">1</field>
-            </shadow>
-          </value>
-          <value name="TO">
-            <shadow type="math_number">
-              <field name="NUM">100</field>
-            </shadow>
-          </value>
-        </block>
-        <block type="math_random_float"></block>
-        <block type="math_atan2">
-          <value name="X">
-            <shadow type="math_number">
-              <field name="NUM">1</field>
-            </shadow>
-          </value>
-          <value name="Y">
-            <shadow type="math_number">
-              <field name="NUM">1</field>
-            </shadow>
-          </value>
-        </block>
       </category>
 
       <category
-        css-icon="customIcon fa fa-question-circle"
-        name="变量"
-        categorystyle="variable_category"
+        css-icon="customIcon fa fa-percent"
+        name="字符"
+        categorystyle="text_category"
       >
         <block type="text"></block>
         <block type="text_multiline"></block>
@@ -268,9 +252,9 @@
       </category>
 
       <category
-        css-icon="customIcon fa fa-percent"
-        name="类型值"
-        categorystyle="value_category"
+        css-icon="customIcon fa fa-list"
+        name="列表"
+        categorystyle="list_category"
       >
         <block type="lists_create_with">
           <mutation items="0"></mutation>
@@ -325,71 +309,28 @@
       </category>
 
       <category
-        css-icon="customIcon fa fa-list"
-        name="列表"
-        categorystyle="list_category"
-      >
-        <block type="colour_picker"></block>
-        <block type="colour_random"></block>
-        <block type="colour_rgb">
-          <value name="RED">
-            <shadow type="math_number">
-              <field name="NUM">100</field>
-            </shadow>
-          </value>
-          <value name="GREEN">
-            <shadow type="math_number">
-              <field name="NUM">50</field>
-            </shadow>
-          </value>
-          <value name="BLUE">
-            <shadow type="math_number">
-              <field name="NUM">0</field>
-            </shadow>
-          </value>
-        </block>
-        <block type="colour_blend">
-          <value name="COLOUR1">
-            <shadow type="colour_picker">
-              <field name="COLOUR">#ff0000</field>
-            </shadow>
-          </value>
-          <value name="COLOUR2">
-            <shadow type="colour_picker">
-              <field name="COLOUR">#3333ff</field>
-            </shadow>
-          </value>
-          <value name="RATIO">
-            <shadow type="math_number">
-              <field name="NUM">0.5</field>
-            </shadow>
-          </value>
-        </block>
-      </category>
+        css-icon="customIcon fa fa-recycle"
+        name="变量"
+        categorystyle="variable_category"
+        custom="VARIABLE"
+      ></category>
 
       <category
         css-icon="customIcon fa fa-recycle"
         name="函数"
-        categorystyle="function_category"
-        custom="VARIABLE"
+        categorystyle="procedure_category"
+        custom="PROCEDURE"
       ></category>
       <category
         css-icon="customIcon fa fa-thermometer-full"
         name="传感器"
         categorystyle="sensor_category"
-        custom="PROCEDURE"
-      ></category>
+      >
+      </category>
       <category
         css-icon="customIcon fa fa-podcast"
         name="执行器"
         categorystyle="actor_category"
-        custom="PROCEDURE"
-      ></category>
-      <category
-        css-icon="customIcon fa fa-volume-up"
-        name="声音"
-        categorystyle="voice_category"
-        custom="PROCEDURE"
       ></category>
     </xml>
   </div>
@@ -423,18 +364,45 @@ import Blockly from "blockly";
 import "./custom_category.js";
 import "./custom_theme.js";
 
+import "../blocks/chip";
+
 export default {
   name: "BlocklyComponent",
-  // props: ["options"],
   data() {
     return {
       workspace: null,
     };
   },
+  methods: {
+    blocklyUpdate() {
+      this.$emit("blocklyUpdate");
+    },
+  },
   mounted() {
     this.workspace = Blockly.inject(this.$refs["blocklyDiv"], {
       toolbox: document.getElementById("toolbox-categories"),
       theme: Blockly.Themes.pico,
+      renderer: "zelos",
+      zoom: {
+        controls: true,
+        wheel: true,
+        startScale: 0.8,
+        maxScale: 1.6,
+        minScale: 0.4,
+        scaleSpeed: 1.1,
+        pinch: true,
+      },
+      scrollbars: true,
+    });
+
+    // 绑定blocks更改的事件
+    this.workspace.addChangeListener(this.blocklyUpdate);
+
+    // 消除滚动条，注意workspace配置里面的scrollbars不能为false，否则就不能拖动了;
+    // 由于div是注入生成的，所以只能在这里通过js完成，有点丑陋
+    document.querySelectorAll(".blocklyMainWorkspaceScrollbar").forEach(function(item) {
+      item.setAttribute("width", 0);
+      item.setAttribute("height", 0);
     });
   },
 };
