@@ -21,23 +21,26 @@
       <div class="device-button">
         <div class="controlFlow">
           <div
-            id="device-load"
-            class="icon top-button inactive"
+            class="icon top-button"
+            :class="{ start: !deviceRunningFlag, stop: deviceRunningFlag }"
             style="display: block"
+            @click="doStart"
           >
-            Start
-          </div>
-          <div
-            id="device-stop"
-            class="icon top-button inactive"
-            style="display: none"
-          >
-            Stop
+            {{ deviceRunningFlag ? "Stop" : "Start" }}
           </div>
         </div>
       </div>
-      <div class="connect-control">
-        <div id="device-connect" class="icon bottom-button start">Connect</div>
+      <div class="connect-control" @click="doConnect">
+        <div
+          id="device-connect"
+          class="icon bottom-button"
+          :class="{
+            start: !deviceConnectFlag,
+            stop: deviceConnectFlag,
+          }"
+        >
+          {{ deviceConnectFlag ? "DISCONNECT" : "CONNECT" }}
+        </div>
       </div>
 
       <!-- 下方多页面控制区 -->
@@ -92,8 +95,7 @@
             <div
               id="python-editor"
               class="aceEditorContainer ace_editor ace_hidpi ace-iplastic"
-            >
-            </div>
+            ></div>
           </div>
         </div>
 
@@ -121,7 +123,7 @@
     <BlocklyComponent
       id="blockly"
       ref="foo"
-      style="left: 0px; top: 55px; width: 1842px; height: 949px" 
+      style="left: 0px; top: 55px; width: 1842px; height: 949px"
       @blocklyUpdate="blocklyUpdate"
     ></BlocklyComponent>
   </div>
@@ -154,8 +156,8 @@
 import BlocklyComponent from "./components/BlocklyComponent.vue";
 import "./prompt";
 
-import ace from "ace-builds"
-import 'ace-builds/webpack-resolver';
+import ace from "ace-builds";
+import "ace-builds/webpack-resolver";
 
 import BlocklyPY from "blockly/python";
 
@@ -166,6 +168,12 @@ export default {
   },
   data() {
     return {
+      deviceConnectFlag: false,
+      deviceRunningFlag: false,
+
+      port: null,
+      communicate_state: "idle",
+
       editor: null,
       code: "",
       isTabDigtalViewSelected: false,
@@ -174,6 +182,106 @@ export default {
   },
   computed: {},
   methods: {
+    //处理连接&断开连接
+    async doConnect() {
+      if (this.deviceConnectFlag) {
+        this.port.close();
+        this.deviceConnectFlag = false;
+      } else {
+        // 浏览器不支持serial
+        if ("serial" in navigator == false) {
+          console.log("The browser is not support serial api");
+          return;
+        }
+
+        // 选择port口
+        this.port = await navigator.serial.requestPort({});
+        console.log("port:", this.port);
+
+        // open serial
+        await this.port.open({ baudRate: 115200 });
+        this.deviceConnectFlag = true;
+
+        // 读取串口的处理流
+        const appendStream = new WritableStream({
+          write(chunk) {
+            console.log("read:", chunk);
+            if (chunk instanceof ArrayBuffer) {
+              switch(this.communicate_state) {
+                case "idle":
+                  break;
+                case "wait_run_finish":
+                  if (chunk.includes(">>>")) {
+                    this.communicate_state = "run_finished";
+                  }
+                  break;
+              }
+            }
+          },
+        });
+        this.port.readable
+          .pipeThrough(new window.TextDecoderStream())
+          .pipeTo(appendStream);
+
+        // 连接后，发送hello，复位REPL
+        setTimeout(this.sendSerialHello, 500);
+      }
+    },
+
+    sendSerialHello() {
+      this.serialWrite("\x03");
+    },
+
+    serialWrite(data) {
+      var encoder = new TextEncoder();
+      const dataArrayBuffer = encoder.encode(data);
+
+      if (this.port && this.port.writable) {
+        const writer = this.port.writable.getWriter();
+        writer.write(dataArrayBuffer);
+        writer.releaseLock();
+      }
+    },
+
+    sleep(milliseconds) {
+      const date = Date.now();
+      let currentDate = null;
+      do {
+        currentDate = Date.now();
+      } while (currentDate - date < milliseconds);
+    },
+
+    doStart() {
+      if (!this.deviceConnectFlag) {
+        this.deviceRunningFlag = false;
+        return;
+      }
+
+      if (this.deviceRunningFlag) {
+        this.deviceRunningFlag = false;
+        this.serialWrite("\x03"); // 中断REPL的执行
+        console.log("stop run.");
+      } else {
+        this.deviceRunningFlag = true;
+        var textArray = this.code.split(/\r\n|\r|\n/);
+
+        console.log(this.code);
+        // this.serialWrite("\x04"); // reset REPL  micropython下发送\x04会soft reboot
+        this.serialWrite("\x05"); // 进入raw REPL mode
+        this.sleep(50);
+        // this.serialWrite(this.code);
+        var _this = this;
+        textArray.forEach(function (line) {
+          _this.serialWrite(line + "\r");
+          _this.sleep(25);
+        });
+        this.serialWrite("\x04"); // 结束raw REPL mode
+
+        this.communicate_state = "wait_run_finish"
+        console.log("write end.");
+      }
+    },
+
     onTabDigtalViewClicked() {
       this.isTabDigtalViewSelected = !this.isTabDigtalViewSelected;
       this.isTabPythonSelected = false;
@@ -186,16 +294,16 @@ export default {
 
     blocklyUpdate() {
       this.code = BlocklyPY.workspaceToCode(this.$refs["foo"].workspace);
-      this.editor.setValue(this.code)
-    }
+      this.editor.setValue(this.code);
+    },
   },
   mounted() {
     this.editor = ace.edit("visualizer-python", {
       readOnly: true,
-      highlightActiveLine: false
+      highlightActiveLine: false,
     });
     // ace.config.set(
-    //   "basePath", 
+    //   "basePath",
     //   "https://cdn.jsdelivr.net/npm/ace-builds@1.4.3/src-noconflict/"
     // )
     this.editor.setTheme("ace/theme/monokai");
@@ -359,6 +467,18 @@ nav {
   border-color: #090;
   color: #090;
   background: #cfc;
+}
+
+.icon.stop {
+  border-color: #d00;
+  color: #d00;
+  background: #fee;
+}
+
+.icon.stop:hover {
+  border-color: #b00;
+  color: #b00;
+  background: #fcc;
 }
 
 .icon.top-button {
