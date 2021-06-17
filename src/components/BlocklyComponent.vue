@@ -360,6 +360,7 @@
  * @author samelh@google.com (Sam El-Husseini)
  */
 
+import BlocklyStorage from "../../public/js/storage"
 import Blockly from "blockly";
 import "./custom_category.js";
 import "./custom_theme.js";
@@ -375,7 +376,7 @@ export default {
   },
   methods: {
     blocklyUpdate() {
-      this.$emit("blocklyUpdate");
+      this.$emit("blocklyUpdate");    // 触发生成代码
     },
   },
   mounted() {
@@ -404,6 +405,12 @@ export default {
       item.setAttribute("width", 0);
       item.setAttribute("height", 0);
     });
+
+    // 注入后，从local storage导入工作内容
+    setTimeout(BlocklyStorage.restoreBlocks, 0);
+
+    // 注册关闭页面后保存工作内容
+    BlocklyStorage.backupOnUnload();
   },
 };
 </script>
