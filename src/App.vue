@@ -162,6 +162,7 @@ export default {
 
       port: null,
       communicate_state: "idle",
+      appendStream: null,
 
       editor: null,
       code: "",
@@ -183,7 +184,7 @@ export default {
     //处理连接&断开连接
     async doConnect() {
       if (this.deviceConnectFlag) {
-        this.port.close();
+        await this.port.close();
         this.deviceConnectFlag = false;
       } else {
         // 浏览器不支持serial
@@ -201,25 +202,28 @@ export default {
         this.deviceConnectFlag = true;
 
         // 读取串口的处理流
-        const appendStream = new WritableStream({
+        var _this = this;
+        this.appendStream = new WritableStream({
           write(chunk) {
             console.log("read:", chunk);
             if (chunk instanceof ArrayBuffer) {
-              switch(this.communicate_state) {
+              switch(_this.communicate_state) {
                 case "idle":
                   break;
                 case "wait_run_finish":
-                  if (chunk.includes(">>>")) {
-                    this.communicate_state = "run_finished";
+                  if (chunk.includes(">")) {
+                    console.log("find end flag");
+                    _this.communicate_state = "run_finished";
                   }
                   break;
               }
             }
+            this.releaseLock();
           },
         });
-        this.port.readable
-          .pipeThrough(new window.TextDecoderStream())
-          .pipeTo(appendStream);
+        // this.port.readable
+        //   .pipeThrough(new window.TextDecoderStream())
+        //   .pipeTo(this.appendStream);
 
         // 连接后，发送hello，复位REPL
         setTimeout(this.sendSerialHello, 500);
@@ -258,6 +262,8 @@ export default {
       if (this.deviceRunningFlag) {
         this.deviceRunningFlag = false;
         this.serialWrite("\x03"); // 中断REPL的执行
+        this.serialWrite("\x04"); // reset REPL
+        this.serialWrite("\x03"); // 
         console.log("stop run.");
       } else {
         this.deviceRunningFlag = true;
