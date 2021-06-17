@@ -43,7 +43,7 @@
         </div>
       </div>
 
-      <!-- 下方多页面控制区 -->
+      <!-- 下方的多页面控制区 -->
       <div
         id="visualizer-container"
         class="SidePanelBottom tabs_closed"
@@ -59,16 +59,6 @@
           v-show="isTabDigtalViewSelected"
         >
           <p>Raspberry Pi<br />Pico</p>
-          <!-- <button id="digital-view-toggle" style="display: block">
-            <svg
-              width="14px"
-              height="14px"
-              viewBox="0 0 10 10"
-              id="digital-view-toggle-dot"
-            >
-              <circle r="5" cx="5" cy="5" fill="#000" stroke="none"></circle>
-            </svg>
-          </button> -->
           <div id="digital-view-module-image">
             <img
               src="./assets/pico.png"
@@ -82,20 +72,18 @@
           id="visualizer-python"
           class="contentTabs pythonBottomTab"
           style="display: block"
+          :style="{height:pythonAreaHeight}"
           v-show="isTabPythonSelected"
         >
           <div class="tabs">
-            <div id="python-panel-control" class="control">
+            <div id="python-panel-control" class="control" @click="pythonExpandFlag=!pythonExpandFlag;editor.resize(true)">
               <div class="three-dot"></div>
               <div class="three-dot"></div>
               <div class="three-dot"></div>
             </div>
           </div>
-          <div>
-            <div
-              id="python-editor"
-              class="aceEditorContainer ace_editor ace_hidpi ace-iplastic"
-            ></div>
+          <div style="height:100%">
+            <div id="python-editor" style="height:100%"></div>
           </div>
         </div>
 
@@ -168,8 +156,9 @@ export default {
   },
   data() {
     return {
-      deviceConnectFlag: false,
-      deviceRunningFlag: false,
+      deviceConnectFlag: false,       // 设备是否连接
+      deviceRunningFlag: false,       // 程序是否在运行中
+      pythonExpandFlag: false,        // python code是否展开
 
       port: null,
       communicate_state: "idle",
@@ -180,7 +169,16 @@ export default {
       isTabPythonSelected: false,
     };
   },
-  computed: {},
+  computed: {
+    pythonAreaHeight: function() {
+      if (this.pythonExpandFlag) {
+        return "600px";
+      }
+      else {
+        return "206px";
+      }
+    }
+  },
   methods: {
     //处理连接&断开连接
     async doConnect() {
@@ -297,8 +295,9 @@ export default {
       this.editor.setValue(this.code);
     },
   },
+
   mounted() {
-    this.editor = ace.edit("visualizer-python", {
+    this.editor = ace.edit("python-editor", {
       readOnly: true,
       highlightActiveLine: false,
     });
@@ -629,7 +628,7 @@ nav {
 .pythonBottomTab {
   height: 206px;
   position: relative;
-  padding-top: 5px;
+  padding-top: 3px;
 }
 
 .tabs {
