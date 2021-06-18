@@ -1,5 +1,5 @@
 
-# kid-blockly [![Built on Blockly](https://tinyurl.com/built-on-blockly)](https://github.com/google/blockly)
+# kid-blockly [![Built on Blockly](https://tinyurl.com/built-on-blockly)](https://github.com/google/blockly)  ![](https://travis-ci.com/ash-liu/kid_blockly.svg?branch=master)
 
 一些关于本项目的介绍：
 
