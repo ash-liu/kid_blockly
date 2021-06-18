@@ -14,6 +14,8 @@ var local_str_table = {
     "WAIT": "wait",
     "SECONDS": "seconds",
     "TURN_PIN": "turn pin",
+    "AS": "as",
+    "WEATHER_AS": "as",
     "ON": "on",
     "OFF": "off",
     "IS_PIN": "is pin",
@@ -31,6 +33,8 @@ var local_str_table = {
     "WAIT": "等待",
     "SECONDS": "秒",
     "TURN_PIN": "设置管脚",
+    "AS": "为",
+    "WEATHER_AS": "是否为",
     "ON": "高",
     "OFF": "低",
     "IS_PIN": "判断管脚",
@@ -107,6 +111,7 @@ Blockly.Blocks.pin_on_off = {
     this.appendDummyInput()
         .appendField(local_str_table[language]["TURN_PIN"])
         .appendField(new Blockly.FieldDropdown(Blockly.Blocks.pins.digital), "GPIO")
+        .appendField(local_str_table[language]["AS"])
         .appendField(new Blockly.FieldDropdown([[local_str_table[language]["ON"], "1"], [local_str_table[language]["OFF"], "0"]]), "NAME");
     this.setPreviousStatement(!0, null);
     this.setNextStatement(!0, null);
@@ -131,6 +136,7 @@ Blockly.Blocks.pin_check = {
     this.appendDummyInput()
         .appendField(local_str_table[language]["IS_PIN"])
         .appendField(new Blockly.FieldDropdown(Blockly.Blocks.pins.digital), "GPIO")
+        .appendField(local_str_table[language]["WEATHER_AS"])
         .appendField(new Blockly.FieldDropdown([[local_str_table[language]["LOW_WHEN_PULLED_UP"], "0,UP"], 
                                                 [local_str_table[language]["HIGH_WHEN_PULLED_UP"], "1,UP"], 
                                                 [local_str_table[language]["LOW"], "0,FLOAT"], 
