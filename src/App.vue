@@ -262,23 +262,26 @@ export default {
       if (this.deviceRunningFlag) {
         this.deviceRunningFlag = false;
         this.serialWrite("\x03"); // 中断REPL的执行
+        this.sleep(100);
         this.serialWrite("\x04"); // reset REPL
+        this.sleep(100);
         this.serialWrite("\x03"); // 
         console.log("stop run.");
       } else {
         this.deviceRunningFlag = true;
-        var textArray = this.code.split(/\r\n|\r|\n/);
+        // var textArray = this.code.split(/\r\n|\r|\n/);
 
         console.log(this.code);
         // this.serialWrite("\x04"); // reset REPL  micropython下发送\x04会soft reboot
         this.serialWrite("\x05"); // 进入raw REPL mode
         this.sleep(50);
-        // this.serialWrite(this.code);
-        var _this = this;
-        textArray.forEach(function (line) {
-          _this.serialWrite(line + "\r");
-          _this.sleep(25);
-        });
+        this.serialWrite(this.code);
+        // var _this = this;
+        // textArray.forEach(function (line) {
+        //   _this.serialWrite(line + "\r");
+        //   _this.sleep(15);
+        // });
+        this.sleep(200);
         this.serialWrite("\x04"); // 结束raw REPL mode
 
         this.communicate_state = "wait_run_finish"
