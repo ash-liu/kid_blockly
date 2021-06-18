@@ -1,5 +1,14 @@
 <template>
   <div>
+    <!-- 用于文件上传 -->
+    <input
+      id="upload"
+      type="file"
+      style="display: none"
+      @change="uploadFinish"
+    />
+
+    <!-- 被注入的div对象 -->
     <div class="blocklyDiv" ref="blocklyDiv"></div>
     <!-- Toolbox Definition -->
     <xml id="toolbox-categories" style="display: none">
@@ -10,7 +19,13 @@
         categorystyle="chip_category"
       >
         <block type="on_start"></block>
-        <block type="wait"></block>
+        <block type="wait">
+          <value name="time">
+            <block type="math_number">
+              <field name="NUM">1</field>
+            </block>
+          </value>
+        </block>
         <block type="pin_on_off"></block>
         <block type="pin_check"></block>
         <block type="pin_analog_read"></block>
@@ -360,12 +375,13 @@
  * @author samelh@google.com (Sam El-Husseini)
  */
 
-import BlocklyStorage from "../../public/js/storage"
+import BlocklyStorage from "../../public/js/storage";
 import Blockly from "blockly";
 import "./custom_category.js";
 import "./custom_theme.js";
-
 import "../blocks/chip";
+
+import * as Zh from "blockly/msg/zh-hans";
 
 export default {
   name: "BlocklyComponent",
@@ -376,10 +392,66 @@ export default {
   },
   methods: {
     blocklyUpdate() {
-      this.$emit("blocklyUpdate");    // 触发生成代码
+      this.$emit("blocklyUpdate"); // 触发生成代码
+    },
+
+    registerContext() {
+      var _this = this;
+      const downlaod = {
+        displayText: "下载",
+        preconditionFn: function () {
+          return "enabled";
+        },
+        callback: function () {
+          console.log("downlaod");
+          var xml = Blockly.Xml.workspaceToDom(_this.workspace);
+          const blob = new Blob([Blockly.Xml.domToText(xml)]);
+          let link = document.createElement("a");
+          link.download = "project.xml";
+          link.href = URL.createObjectURL(blob);
+          link.click();
+          URL.revokeObjectURL(link.href);
+        },
+        scopeType: Blockly.ContextMenuRegistry.ScopeType.WORKSPACE,
+        id: "downlaod",
+        weight: 200, // Use a larger weight to push the option lower on the context menu.
+      };
+      Blockly.ContextMenuRegistry.registry.register(downlaod);
+
+      const uplaod = {
+        displayText: "上传",
+        preconditionFn: function () {
+          return "enabled";
+        },
+        callback: function () {
+          let input = document.getElementById("upload");
+          input.click(); // 呼出上传文件对话框
+        },
+        scopeType: Blockly.ContextMenuRegistry.ScopeType.WORKSPACE,
+        id: "upload",
+        weight: 201, // Use a larger weight to push the option lower on the context menu.
+      };
+      Blockly.ContextMenuRegistry.registry.register(uplaod);
+    },
+
+    // 处理上传的文件
+    uploadFinish(event) {
+      // const selectedFile = this.$refs.uplaod.files[0];
+      // const selectedFile = document.getElementById('uplaod').files[0];
+      const selectedFile = event.target.files[0]
+      var reader = new FileReader();
+      reader.readAsText(selectedFile);
+      var _this=this;
+      reader.onload = function () {
+        _this.workspace.clear();    // 清空当前的内容
+        var xml = Blockly.Xml.textToDom(this.result);
+        Blockly.Xml.domToWorkspace(xml, _this.workspace);
+      };
     },
   },
   mounted() {
+    this.registerContext();
+
     this.workspace = Blockly.inject(this.$refs["blocklyDiv"], {
       toolbox: document.getElementById("toolbox-categories"),
       theme: Blockly.Themes.pico,
@@ -401,16 +473,21 @@ export default {
 
     // 消除滚动条，注意workspace配置里面的scrollbars不能为false，否则就不能拖动了;
     // 由于div是注入生成的，所以只能在这里通过js完成，有点丑陋
-    document.querySelectorAll(".blocklyMainWorkspaceScrollbar").forEach(function(item) {
-      item.setAttribute("width", 0);
-      item.setAttribute("height", 0);
-    });
+    document
+      .querySelectorAll(".blocklyMainWorkspaceScrollbar")
+      .forEach(function (item) {
+        item.setAttribute("width", 0);
+        item.setAttribute("height", 0);
+      });
 
     // 注入后，从local storage导入工作内容
     setTimeout(BlocklyStorage.restoreBlocks, 0);
 
     // 注册关闭页面后保存工作内容
     BlocklyStorage.backupOnUnload();
+
+    // 设置中文
+    Blockly.setLocale(Zh);
   },
 };
 </script>

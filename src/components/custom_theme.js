@@ -7,7 +7,7 @@
   'base': Blockly.Themes.Classic,
   'categoryStyles': {
     'chip_category': {
-      'colour': "#108410"
+      'colour': 10
     },
     // 'logic_category': {
     //   'colour': "#45d391",
@@ -42,7 +42,7 @@
   },
   'blockStyles': {
     'chip_blocks': {
-      'colourPrimary': "#108410"
+      'colourPrimary': 10
     },
     // 'logic_blocks': {
     //   'colourPrimary': "#45d391",
