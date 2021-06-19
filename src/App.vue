@@ -72,18 +72,25 @@
           id="visualizer-python"
           class="contentTabs pythonBottomTab"
           style="display: block"
-          :style="{height:pythonAreaHeight}"
+          :style="{ height: pythonAreaHeight }"
           v-show="isTabPythonSelected"
         >
           <div class="tabs">
-            <div id="python-panel-control" class="control" @click="pythonExpandFlag=!pythonExpandFlag;editor.resize(true)">
+            <div
+              id="python-panel-control"
+              class="control"
+              @click="
+                pythonExpandFlag = !pythonExpandFlag;
+                editor.resize(true);
+              "
+            >
               <div class="three-dot"></div>
               <div class="three-dot"></div>
               <div class="three-dot"></div>
             </div>
           </div>
-          <div style="height:100%">
-            <div id="python-editor" style="height:100%"></div>
+          <div style="height: 100%">
+            <div id="python-editor" style="height: 100%"></div>
           </div>
         </div>
 
@@ -156,11 +163,14 @@ export default {
   },
   data() {
     return {
-      deviceConnectFlag: false,       // 设备是否连接
-      deviceRunningFlag: false,       // 程序是否在运行中
-      pythonExpandFlag: false,        // python code是否展开
+      deviceConnectFlag: false, // 设备是否连接
+      deviceRunningFlag: false, // 程序是否在运行中
+      pythonExpandFlag: false, // python code是否展开
 
       port: null,
+      reader: null,             // 设备读取器
+      inputDone: null,          // 
+
       communicate_state: "idle",
       appendStream: null,
 
@@ -171,19 +181,24 @@ export default {
     };
   },
   computed: {
-    pythonAreaHeight: function() {
+    pythonAreaHeight: function () {
       if (this.pythonExpandFlag) {
         return "600px";
-      }
-      else {
+      } else {
         return "206px";
       }
-    }
+    },
   },
   methods: {
     //处理连接&断开连接
     async doConnect() {
       if (this.deviceConnectFlag) {
+        if (this.reader) {
+          await this.reader.cancel();
+          await this.inputDone.catch(() => {});
+          this.reader = null;
+          this.inputDone = null;
+        }
         await this.port.close();
         this.deviceConnectFlag = false;
       } else {
@@ -201,32 +216,51 @@ export default {
         await this.port.open({ baudRate: 115200 });
         this.deviceConnectFlag = true;
 
-        // 读取串口的处理流
-        var _this = this;
-        this.appendStream = new WritableStream({
-          write(chunk) {
-            console.log("read:", chunk);
-            if (chunk instanceof ArrayBuffer) {
-              switch(_this.communicate_state) {
-                case "idle":
-                  break;
-                case "wait_run_finish":
-                  if (chunk.includes(">")) {
-                    console.log("find end flag");
-                    _this.communicate_state = "run_finished";
-                  }
-                  break;
-              }
-            }
-            this.releaseLock();
-          },
-        });
+        // // 读取串口的处理流
+        // var _this = this;
+        // this.appendStream = new WritableStream({
+        //   write(chunk) {
+        //     console.log("read:", chunk);
+        //     if (chunk instanceof ArrayBuffer) {
+        //       switch(_this.communicate_state) {
+        //         case "idle":
+        //           break;
+        //         case "wait_run_finish":
+        //           if (chunk.includes(">")) {
+        //             console.log("find end flag");
+        //             _this.communicate_state = "run_finished";
+        //           }
+        //           break;
+        //       }
+        //     }
+        //   },
+        // });
         // this.port.readable
         //   .pipeThrough(new window.TextDecoderStream())
         //   .pipeTo(this.appendStream);
 
         // 连接后，发送hello，复位REPL
         setTimeout(this.sendSerialHello, 500);
+
+        let decoder = new TextDecoderStream();
+        this.inputDone  = this.port.readable.pipeTo(decoder.writable);
+        let inputStream = decoder.readable;
+        this.reader = inputStream.getReader();
+        this.readLoop();
+      }
+    },
+
+    async readLoop() {
+      while (true) {
+        const { value, done } = await this.reader.read();
+        if (value) {
+          // log.textContent += value + "\n";
+        }
+        if (done) {
+          console.log("[readLoop] DONE", done);
+          this.reader.releaseLock();
+          break;
+        }
       }
     },
 
@@ -265,7 +299,7 @@ export default {
         this.sleep(100);
         this.serialWrite("\x04"); // reset REPL
         this.sleep(100);
-        this.serialWrite("\x03"); // 
+        this.serialWrite("\x03"); //
         console.log("stop run.");
       } else {
         this.deviceRunningFlag = true;
@@ -284,7 +318,7 @@ export default {
         this.sleep(200);
         this.serialWrite("\x04"); // 结束raw REPL mode
 
-        this.communicate_state = "wait_run_finish"
+        this.communicate_state = "wait_run_finish";
         console.log("write end.");
       }
     },
