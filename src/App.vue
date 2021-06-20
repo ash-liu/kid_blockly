@@ -118,7 +118,7 @@
     <BlocklyComponent
       id="blockly"
       ref="foo"
-      style="left: 0px; top: 55px; width: 1842px; height: 949px"
+      style="left: 0px; top: 55px; width: 100%; height: 949px"
       @blocklyUpdate="blocklyUpdate"
     ></BlocklyComponent>
   </div>
@@ -713,6 +713,11 @@ nav {
   width: 12px;
   background-color: #ccc;
   border-radius: 50%;
+}
+
+/* 去掉滚动条 */
+#blockly::-webkit-scrollbar {
+  display: none;
 }
 /* end here!!!! */
 </style>
