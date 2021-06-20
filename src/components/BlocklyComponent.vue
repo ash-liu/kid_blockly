@@ -466,6 +466,7 @@ export default {
         pinch: true,
       },
       scrollbars: true,
+      media: "media/",
     });
 
     // 绑定blocks更改的事件
