@@ -13,6 +13,13 @@
             />
           </div>
         </span>
+
+        <div class="interface-select">
+          <i class="fa fa-usb fa-2x" aria-hidden="true"  :style={color:usbColor} @click="do_interface_select('serial')"></i>
+          <div class="interface_icon_margin"></div>
+          <i class="fa fa-wifi fa-2x" aria-hidden="true" :style={color:wifiColor} @click="do_interface_select('ws')"></i>
+          <input v-show="interface_select != 'serial'" v-model="ip_input">
+        </div>
       </div>
     </nav>
 
@@ -165,14 +172,10 @@ export default {
   },
   data() {
     return {
+      interface_select: "serial",
+      ip_input: "",
       device: new Device(),
-      deviceConnectFlag: false, // 设备是否连接
-      deviceRunningFlag: false, // 程序是否在运行中
       pythonExpandFlag: false, // python code是否展开
-
-      port: null,
-      reader: null,             // 设备读取器
-      inputDone: null,          // 
 
       editor: null,
       code: "",
@@ -188,17 +191,54 @@ export default {
         return "206px";
       }
     },
-  },
-  methods: {
-    //处理连接&断开连接
-    doConnect() {
-      if (this.device.deviceConnectFlag) {
-        // this.device.connect("ws", false, "ws://192.168.1.8:8266/");
-        this.device.connect("serial", false);
+
+    usbColor: function () {
+      if (this.interface_select == "serial") {
+        return "#3298dc";
       }
       else {
-        // this.device.connect("ws", true, "ws://192.168.1.8:8266/");
-        this.device.connect("serial", true);
+        return "#888888";
+      }
+    },
+
+    wifiColor: function() {
+      if (this.interface_select == "serial") {
+        return "#888888";
+      }
+      else {
+        return "#3298dc";
+      }
+    },
+
+    ws_address_from_ip: function() {
+      return "ws://" + this.ip_input + ":8266/";
+    }
+  },
+  methods: {
+    do_interface_select(i) {
+      if (this.interface_select == i) {
+        return;
+      }
+      else {
+        // 断开当前连接
+        if (this.device.deviceConnectFlag) {
+          this.device.connect(this.device.interfaceType, false);
+        }
+
+        // 更新当前选择的interface
+        // 仅仅选择，并不打开interface
+        this.interface_select = i;
+      }
+    },
+
+    //处理连接&断开连接
+    doConnect() {
+      console.log("ws = ", this.ws_address_from_ip);
+      if (this.device.deviceConnectFlag) {
+        this.device.connect(this.interface_select, false, this.ws_address_from_ip);
+      }
+      else {
+        this.device.connect(this.interface_select, true, this.ws_address_from_ip);
       }
     },
 
@@ -275,7 +315,8 @@ nav {
   height: 60px;
   z-index: 500;
   display: flex;
-  justify-content: space-around;
+  align-items: center;
+  justify-content: flex-start;
   font-weight: 700;
   background-color: #333;
 }
@@ -291,8 +332,27 @@ nav {
   display: flex;
 }
 
+#navigation-bar .interface-select {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-grow: 0;
+  /* align-self: flex-end; */
+}
+
+#navigation-bar .interface_icon_margin {
+  display: flex;
+  flex-basis: 10px;
+  flex-grow: 0;
+}
+
+#navigation-bar i {
+  display: flex;
+  flex-grow: 0;
+}
+
 #navigation-bar > .logo-container {
-  flex-grow: 1;
+  flex-grow: 0;
   text-align: left;
   display: flex;
   justify-content: flex-start;
