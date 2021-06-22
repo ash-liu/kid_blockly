@@ -26,6 +26,7 @@
             </block>
           </value>
         </block>
+        <block type="pin_mode"></block>
         <block type="pin_on_off"></block>
         <block type="pin_check"></block>
         <block type="pin_analog_read"></block>

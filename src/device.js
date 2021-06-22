@@ -132,6 +132,7 @@ export default class Device {
             return;
         }
 
+        // 停止执行
         if (this._deviceRunningFlag) {
             this._deviceRunningFlag = false;
             this.write("\x03"); // 中断REPL的执行
@@ -140,7 +141,9 @@ export default class Device {
             sleep(100);
             this.write("\x03"); //
             console.log("stop run.");
-        } else {
+        }
+        // 开始执行 
+        else {
             this._deviceRunningFlag = true;
             console.log(msg);
             this.write("\x05"); // 进入raw REPL mode
@@ -153,7 +156,8 @@ export default class Device {
     }
 
     sendSerialHello() {
-        this.write("\x03");
+        this.write("\x02");         // 退出microPython的Raw mode，serial模式下会进入这个模式
+        this.write("\x03");         // 复位终端
     }
 
     write(msg) {

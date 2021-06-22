@@ -193,10 +193,12 @@ export default {
     //处理连接&断开连接
     doConnect() {
       if (this.device.deviceConnectFlag) {
-        this.device.connect("ws", false, "ws://192.168.3.50:8266/");
+        // this.device.connect("ws", false, "ws://192.168.1.8:8266/");
+        this.device.connect("serial", false);
       }
       else {
-        this.device.connect("ws", true, "ws://192.168.3.50:8266/");
+        // this.device.connect("ws", true, "ws://192.168.1.8:8266/");
+        this.device.connect("serial", true);
       }
     },
 

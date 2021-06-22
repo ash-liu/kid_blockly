@@ -18,6 +18,10 @@ var local_str_table = {
     "WEATHER_AS": "as",
     "ON": "on",
     "OFF": "off",
+    "IN": "input",
+    "OUT": "output",
+    "PULL_UP": "pull up",
+    "PULL_DN": "pull down",
     "IS_PIN": "is pin",
     "LOW_WHEN_PULLED_UP": "LOW when pulled UP",
     "HIGH_WHEN_PULLED_UP": "HIGH when pulled UP",
@@ -37,6 +41,10 @@ var local_str_table = {
     "WEATHER_AS": "是否为",
     "ON": "高",
     "OFF": "低",
+    "IN": "输入",
+    "OUT": "输出",
+    "PULL_UP": "上拉",
+    "PULL_DN": "下拉",
     "IS_PIN": "判断管脚",
     "LOW_WHEN_PULLED_UP": "低(上拉)",
     "HIGH_WHEN_PULLED_UP": "高(上拉)",
@@ -48,15 +56,18 @@ var local_str_table = {
   }
 };
 
+let gpio_pin_prefix = "GPIO_PIN_";
+let analog_pin_prefix = "ANALOG_PIN_";
+
 
 // Pin define
 Blockly.Blocks.pins || (Blockly.Blocks.pins = {});
 Blockly.Blocks.pins.digital = "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 22".split(" ").map(function (a) {
-  return [a, "GP" + a]
+  return [a, a]
 });
-Blockly.Blocks.pins.digital.push(["25 (LED)", "GP25"]);
+Blockly.Blocks.pins.digital.push(["25 (LED)", "25"]);
 
-Blockly.Blocks.pins.analog = [["A0", "GP26"], ["A1", "GP27"], ["A2", "GP28"]];
+Blockly.Blocks.pins.analog = [["A0", "26"], ["A1", "27"], ["A2", "28"]];
 
 // Blockly.Blocks['chip_start'] = {
 //   init: function() {
@@ -105,6 +116,32 @@ BlocklyPY.wait = function (a) {
   return "time.sleep(" + BlocklyPY.valueToCode(a, "time", BlocklyPY.ORDER_ATOMIC) + ")\n"
 }
 
+
+// on-off
+Blockly.Blocks.pin_mode = {
+  init: function () {
+    this.appendDummyInput()
+        .appendField(local_str_table[language]["TURN_PIN"])
+        .appendField(new Blockly.FieldDropdown(Blockly.Blocks.pins.digital), "GPIO")
+        .appendField(local_str_table[language]["AS"])
+        .appendField(new Blockly.FieldDropdown([[local_str_table[language]["IN"], "Pin.IN"], [local_str_table[language]["OUT"], "Pin.OUT"]]), "NAME")
+        .appendField(new Blockly.FieldDropdown([[local_str_table[language]["PULL_UP"], "Pin.PULL_UP"], [local_str_table[language]["PULL_DN"], "Pin.PULL_DOWN"]]), "MODE");
+    this.setPreviousStatement(!0, null);
+    this.setNextStatement(!0, null);
+    this.setStyle("chip_blocks");
+    this.setTooltip("");
+    this.setHelpUrl("")
+  }
+};
+
+BlocklyPY.pin_mode = function (a) {
+  var b = a.getFieldValue("GPIO");
+  var c = a.getFieldValue("NAME");
+  var d = a.getFieldValue("MODE");
+  a.disabled || (BlocklyPY.definitions_.import_machine_pin = "from machine import Pin");
+  return gpio_pin_prefix + b + " = Pin(" + b + ", " + c +  ", " + d + ")\n"
+};
+
 // on-off
 Blockly.Blocks.pin_on_off = {
   init: function () {
@@ -124,10 +161,8 @@ Blockly.Blocks.pin_on_off = {
 BlocklyPY.pin_on_off = function (a) {
   var b = a.getFieldValue("GPIO");
   var c = a.getFieldValue("NAME");
-  a.disabled || (BlocklyPY.definitions_.import_board = "import board",
-    BlocklyPY.definitions_["digital_pin_" + b] = b + " = piperPin(board." + b + ', "' + b + '")',
-    BlocklyPY.definitions_.import_piper_blockly = "from piper_blockly import *");
-  return b + ".setPin(" + c + ")\n"
+  a.disabled || (BlocklyPY.definitions_.import_machine_pin = "from machine import Pin");
+  return gpio_pin_prefix + b + ".value(" + c + ")\n"
 };
 
 // read pin
@@ -137,12 +172,8 @@ Blockly.Blocks.pin_check = {
         .appendField(local_str_table[language]["IS_PIN"])
         .appendField(new Blockly.FieldDropdown(Blockly.Blocks.pins.digital), "GPIO")
         .appendField(local_str_table[language]["WEATHER_AS"])
-        .appendField(new Blockly.FieldDropdown([[local_str_table[language]["LOW_WHEN_PULLED_UP"], "0,UP"], 
-                                                [local_str_table[language]["HIGH_WHEN_PULLED_UP"], "1,UP"], 
-                                                [local_str_table[language]["LOW"], "0,FLOAT"], 
-                                                [local_str_table[language]["HIGH"], "1,FLOAT"], 
-                                                [local_str_table[language]["LOW_WHEN_PULLED_DOWN"], "0,DOWN"], 
-                                                [local_str_table[language]["HIGH_WHEN_PULLED_DOWN"], "1,DOWN"]]), "CHECKFOR");
+        .appendField(new Blockly.FieldDropdown([[local_str_table[language]["LOW"], "0"], 
+                                                [local_str_table[language]["HIGH"], "1"]]), "CHECKFOR");
     this.setInputsInline(!0);
     this.setOutput(!0, "Boolean");
     this.setStyle("chip_blocks");
@@ -153,12 +184,9 @@ Blockly.Blocks.pin_check = {
 
 BlocklyPY.pin_check = function (a) {
   var b = a.getFieldValue("GPIO");
-  var c = a.getFieldValue("CHECKFOR").split(",");
-  a.disabled || (BlocklyPY.definitions_.import_board = "import board",
-    BlocklyPY.definitions_.import_digitalio_pull = "from digitalio import Pull",
-    BlocklyPY.definitions_["digital_pin_" + b] = b + " = piperPin(board." + b + ', "' + b + '")',
-    BlocklyPY.definitions_.import_piper_blockly = "from piper_blockly import *");
-  return [("0" === c[0] ? "not " : "") + b + ".checkPin(" + ("FLOAT" === c[1] ? "None" : "Pull." + c[1]) + ")", BlocklyPY.ORDER_NONE]
+  var c = a.getFieldValue("CHECKFOR");
+  a.disabled || (BlocklyPY.definitions_.import_machine_pin = "from machine import Pin");
+  return [("0" === c[0] ? "not " : "") + gpio_pin_prefix + b + ".value()", BlocklyPY.ORDER_NONE]
 };
 
 // read analog pin
@@ -175,9 +203,8 @@ Blockly.Blocks.pin_analog_read = {
 
 Blockly.Python.pin_analog_read = function (a) {
   var b = a.getFieldValue("GPIO");
-  a.disabled || (Blockly.Python.definitions_.import_board = "import board",
-    Blockly.Python.definitions_["analog_pin_" + b] = "\n" + b + " = piperPin(board." + b + ', "' + b + '", "Analog")',
-    Blockly.Python.definitions_.import_piper_blockly = "from piper_blockly import *",
-    Blockly.Python.definitions_.import_digital_view = "try:\n" + Blockly.Python.INDENT + "set_digital_view(True)\nexcept:\n" + Blockly.Python.INDENT + "pass\n");
-  return [b + ".readVoltage()", Blockly.Python.ORDER_ATOMIC]
+  a.disabled || (BlocklyPY.definitions_.import_machine_pin = "from machine import Pin",
+    BlocklyPY.definitions_.import_machine_adc = "from machine import ADC",
+    Blockly.Python.definitions_["analog_pin_" + b] = "\n" + analog_pin_prefix + b + " = ADC(Pin(" + b + '))');
+  return [analog_pin_prefix + b + ".read_u16() * 3.3 / 65535", Blockly.Python.ORDER_ATOMIC]
 };
