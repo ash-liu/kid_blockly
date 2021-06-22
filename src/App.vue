@@ -22,11 +22,11 @@
         <div class="controlFlow">
           <div
             class="icon top-button"
-            :class="{ start: !deviceRunningFlag, stop: deviceRunningFlag }"
+            :class="{ start: !device.deviceRunningFlag, stop: device.deviceRunningFlag }"
             style="display: block"
             @click="doStart"
           >
-            {{ deviceRunningFlag ? "Stop" : "Start" }}
+            {{ device.deviceRunningFlag ? "Stop" : "Start" }}
           </div>
         </div>
       </div>
@@ -35,11 +35,11 @@
           id="device-connect"
           class="icon bottom-button"
           :class="{
-            start: !deviceConnectFlag,
-            stop: deviceConnectFlag,
+            start: !device.deviceConnectFlag,
+            stop: device.deviceConnectFlag,
           }"
         >
-          {{ deviceConnectFlag ? "DISCONNECT" : "CONNECT" }}
+          {{ device.deviceConnectFlag ? "DISCONNECT" : "CONNECT" }}
         </div>
       </div>
 
@@ -156,6 +156,8 @@ import "ace-builds/webpack-resolver";
 
 import BlocklyPY from "blockly/python";
 
+import Device from "./device";
+
 export default {
   name: "app",
   components: {
@@ -163,6 +165,7 @@ export default {
   },
   data() {
     return {
+      device: new Device(),
       deviceConnectFlag: false, // 设备是否连接
       deviceRunningFlag: false, // 程序是否在运行中
       pythonExpandFlag: false, // python code是否展开
@@ -170,9 +173,6 @@ export default {
       port: null,
       reader: null,             // 设备读取器
       inputDone: null,          // 
-
-      communicate_state: "idle",
-      appendStream: null,
 
       editor: null,
       code: "",
@@ -191,136 +191,17 @@ export default {
   },
   methods: {
     //处理连接&断开连接
-    async doConnect() {
-      if (this.deviceConnectFlag) {
-        if (this.reader) {
-          await this.reader.cancel();
-          await this.inputDone.catch(() => {});
-          this.reader = null;
-          this.inputDone = null;
-        }
-        await this.port.close();
-        this.deviceConnectFlag = false;
-      } else {
-        // 浏览器不支持serial
-        if ("serial" in navigator == false) {
-          console.log("The browser is not support serial api");
-          return;
-        }
-
-        // 选择port口
-        this.port = await navigator.serial.requestPort({});
-        console.log("port:", this.port);
-
-        // open serial
-        await this.port.open({ baudRate: 115200 });
-        this.deviceConnectFlag = true;
-
-        // // 读取串口的处理流
-        // var _this = this;
-        // this.appendStream = new WritableStream({
-        //   write(chunk) {
-        //     console.log("read:", chunk);
-        //     if (chunk instanceof ArrayBuffer) {
-        //       switch(_this.communicate_state) {
-        //         case "idle":
-        //           break;
-        //         case "wait_run_finish":
-        //           if (chunk.includes(">")) {
-        //             console.log("find end flag");
-        //             _this.communicate_state = "run_finished";
-        //           }
-        //           break;
-        //       }
-        //     }
-        //   },
-        // });
-        // this.port.readable
-        //   .pipeThrough(new window.TextDecoderStream())
-        //   .pipeTo(this.appendStream);
-
-        // 连接后，发送hello，复位REPL
-        setTimeout(this.sendSerialHello, 500);
-
-        let decoder = new TextDecoderStream();
-        this.inputDone  = this.port.readable.pipeTo(decoder.writable);
-        let inputStream = decoder.readable;
-        this.reader = inputStream.getReader();
-        this.readLoop();
+    doConnect() {
+      if (this.device.deviceConnectFlag) {
+        this.device.connect("ws", false, "ws://192.168.3.50:8266/");
       }
-    },
-
-    async readLoop() {
-      while (true) {
-        const { value, done } = await this.reader.read();
-        if (value) {
-          // log.textContent += value + "\n";
-        }
-        if (done) {
-          console.log("[readLoop] DONE", done);
-          this.reader.releaseLock();
-          break;
-        }
+      else {
+        this.device.connect("ws", true, "ws://192.168.3.50:8266/");
       }
-    },
-
-    sendSerialHello() {
-      this.serialWrite("\x03");
-    },
-
-    serialWrite(data) {
-      var encoder = new TextEncoder();
-      const dataArrayBuffer = encoder.encode(data);
-
-      if (this.port && this.port.writable) {
-        const writer = this.port.writable.getWriter();
-        writer.write(dataArrayBuffer);
-        writer.releaseLock();
-      }
-    },
-
-    sleep(milliseconds) {
-      const date = Date.now();
-      let currentDate = null;
-      do {
-        currentDate = Date.now();
-      } while (currentDate - date < milliseconds);
     },
 
     doStart() {
-      if (!this.deviceConnectFlag) {
-        this.deviceRunningFlag = false;
-        return;
-      }
-
-      if (this.deviceRunningFlag) {
-        this.deviceRunningFlag = false;
-        this.serialWrite("\x03"); // 中断REPL的执行
-        this.sleep(100);
-        this.serialWrite("\x04"); // reset REPL
-        this.sleep(100);
-        this.serialWrite("\x03"); //
-        console.log("stop run.");
-      } else {
-        this.deviceRunningFlag = true;
-        // var textArray = this.code.split(/\r\n|\r|\n/);
-
-        console.log(this.code);
-        // this.serialWrite("\x04"); // reset REPL  micropython下发送\x04会soft reboot
-        this.serialWrite("\x05"); // 进入raw REPL mode
-        this.sleep(50);
-        this.serialWrite(this.code);
-        // var _this = this;
-        // textArray.forEach(function (line) {
-        //   _this.serialWrite(line + "\r");
-        //   _this.sleep(15);
-        // });
-        this.sleep(200);
-        this.serialWrite("\x04"); // 结束raw REPL mode
-
-        this.communicate_state = "wait_run_finish";
-        console.log("write end.");
-      }
+      this.device.start(this.code);
     },
 
     onTabDigtalViewClicked() {
