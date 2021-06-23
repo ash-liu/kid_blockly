@@ -14,11 +14,28 @@
           </div>
         </span>
 
+        <!-- 串口与wifi选择区 -->
         <div class="interface-select">
-          <i class="fa fa-usb fa-2x" aria-hidden="true"  :style={color:usbColor} @click="do_interface_select('serial')"></i>
-          <div class="interface_icon_margin"></div>
-          <i class="fa fa-wifi fa-2x" aria-hidden="true" :style={color:wifiColor} @click="do_interface_select('ws')"></i>
-          <input v-show="interface_select != 'serial'" v-model="ip_input">
+          <i
+            class="fa fa-usb fa-2x"
+            aria-hidden="true"
+            :style="{ color: usbColor }"
+            @click="do_interface_select('serial')"
+          ></i>
+          <div style="width: 15px"></div>
+          <i
+            class="fa fa-wifi fa-2x"
+            aria-hidden="true"
+            :style="{ color: wifiColor }"
+            @click="do_interface_select('ws')"
+          ></i>
+          <div style="width: 5px"></div>
+          <input
+            :disabled="device.deviceConnectFlag"
+            v-show="interface_select != 'serial'"
+            v-model="ip_input"
+            style="height:20px"
+          />
         </div>
       </div>
     </nav>
@@ -29,7 +46,10 @@
         <div class="controlFlow">
           <div
             class="icon top-button"
-            :class="{ start: !device.deviceRunningFlag, stop: device.deviceRunningFlag }"
+            :class="{
+              start: !device.deviceRunningFlag,
+              stop: device.deviceRunningFlag,
+            }"
             style="display: block"
             @click="doStart"
           >
@@ -195,31 +215,28 @@ export default {
     usbColor: function () {
       if (this.interface_select == "serial") {
         return "#3298dc";
-      }
-      else {
+      } else {
         return "#888888";
       }
     },
 
-    wifiColor: function() {
+    wifiColor: function () {
       if (this.interface_select == "serial") {
         return "#888888";
-      }
-      else {
+      } else {
         return "#3298dc";
       }
     },
 
-    ws_address_from_ip: function() {
+    ws_address_from_ip: function () {
       return "ws://" + this.ip_input + ":8266/";
-    }
+    },
   },
   methods: {
     do_interface_select(i) {
       if (this.interface_select == i) {
         return;
-      }
-      else {
+      } else {
         // 断开当前连接
         if (this.device.deviceConnectFlag) {
           this.device.connect(this.device.interfaceType, false);
@@ -235,10 +252,17 @@ export default {
     doConnect() {
       console.log("ws = ", this.ws_address_from_ip);
       if (this.device.deviceConnectFlag) {
-        this.device.connect(this.interface_select, false, this.ws_address_from_ip);
-      }
-      else {
-        this.device.connect(this.interface_select, true, this.ws_address_from_ip);
+        this.device.connect(
+          this.interface_select,
+          false,
+          this.ws_address_from_ip
+        );
+      } else {
+        this.device.connect(
+          this.interface_select,
+          true,
+          this.ws_address_from_ip
+        );
       }
     },
 
