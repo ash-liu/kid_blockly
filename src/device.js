@@ -175,6 +175,11 @@ export default class Device {
             this.openPort();
         }
         else {
+            // 验证IP
+            if (param && !(/((25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d)))\.){3}(25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d)))/).test(param)) {
+                alert("IP输入错误，请输入正确格式的IP");
+                return;
+            }
             this.openWs(param);
         }
 

@@ -36,6 +36,7 @@
             v-model="ip_input"
             style="height:25px"
             placeholder='输入IP地址'
+            @keydown.enter="doConnect"
           />
         </div>
       </div>
@@ -235,6 +236,7 @@ export default {
     },
   },
   methods: {
+    // 针对不同的接口类型跳转到对应的页面
     do_interface_select(i) {
       if (this.interface_select == i) {
         return;
