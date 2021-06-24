@@ -28,7 +28,7 @@ function sleep(milliseconds) {
 // 设备操作类，用于实现与设备端的操作，目前操作的interface也包含在里面
 // 
 export default class Device {
-    constructor() {
+    constructor(i) {
         this.port_interface = {             // 串口handle
             port: null,
             reader: null,
@@ -56,7 +56,7 @@ export default class Device {
         };
         this._deviceConnectFlag = false;     // 是否连接标志
         this._deviceRunningFlag = false;     // 是否执行标志
-        this._interfaceType = 'serial';      // 连接类型
+        this._interfaceType = i;            // 连接类型
     }
 
     // -----------------------------------------------------

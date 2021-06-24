@@ -34,7 +34,8 @@
             :disabled="device.deviceConnectFlag"
             v-show="interface_select != 'serial'"
             v-model="ip_input"
-            style="height:20px"
+            style="height:25px"
+            placeholder='输入IP地址'
           />
         </div>
       </div>
@@ -187,14 +188,15 @@ import Device from "./device";
 
 export default {
   name: "app",
+  props: ['source'],      // "serial" or "ws"
   components: {
     BlocklyComponent,
   },
   data() {
     return {
-      interface_select: "serial",
+      interface_select: window.location.pathname.slice(1),
       ip_input: "",
-      device: new Device(),
+      device: new Device(this.interface_select),
       pythonExpandFlag: false, // python code是否展开
 
       editor: null,
@@ -237,14 +239,18 @@ export default {
       if (this.interface_select == i) {
         return;
       } else {
-        // 断开当前连接
-        if (this.device.deviceConnectFlag) {
-          this.device.connect(this.device.interfaceType, false);
+        if (i == "serial") {
+          // 只有当在线模式下才会跳转到https
+          if (window.location.host == "lstabc.com") {
+            window.location.replace("https://" + window.location.host + "/serial");
+          }
+          else {
+            window.location.replace("http://" + window.location.host + "/serial");
+          }
         }
-
-        // 更新当前选择的interface
-        // 仅仅选择，并不打开interface
-        this.interface_select = i;
+        else {
+          window.location.replace("http://" + window.location.host + "/ws");
+        }
       }
     },
 
@@ -287,6 +293,7 @@ export default {
   },
 
   mounted() {
+    console.log("interface_select:", this.interface_select);
     this.editor = ace.edit("python-editor", {
       readOnly: true,
       highlightActiveLine: false,
