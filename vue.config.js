@@ -33,7 +33,7 @@ module.exports = {
       // 模板来源
       template: 'public/serial.html',
       // 在 dist/index.html 的输出
-      filename: 'serial'
+      filename: 'serial.html'
     },
 
     ws: {
@@ -42,7 +42,7 @@ module.exports = {
       // 模板来源
       template: 'public/ws.html',
       // 在 dist/index.html 的输出
-      filename: 'ws'
+      filename: 'ws.html'
     },
   }
 }

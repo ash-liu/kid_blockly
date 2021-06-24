@@ -194,7 +194,7 @@ export default {
   },
   data() {
     return {
-      interface_select: window.location.pathname.slice(1),
+      interface_select: window.location.pathname.slice(1, -5),
       ip_input: "",
       device: new Device(this.interface_select),
       pythonExpandFlag: false, // python code是否展开
@@ -242,14 +242,14 @@ export default {
         if (i == "serial") {
           // 只有当在线模式下才会跳转到https
           if (window.location.host == "lstabc.com") {
-            window.location.replace("https://" + window.location.host + "/serial");
+            window.location.replace("https://" + window.location.host + "/serial.html");
           }
           else {
-            window.location.replace("http://" + window.location.host + "/serial");
+            window.location.replace("http://" + window.location.host + "/serial.html");
           }
         }
         else {
-          window.location.replace("http://" + window.location.host + "/ws");
+          window.location.replace("http://" + window.location.host + "/ws.html");
         }
       }
     },
@@ -293,15 +293,11 @@ export default {
   },
 
   mounted() {
-    console.log("interface_select:", this.interface_select);
+    // console.log("interface_select:", this.interface_select);
     this.editor = ace.edit("python-editor", {
       readOnly: true,
       highlightActiveLine: false,
     });
-    // ace.config.set(
-    //   "basePath",
-    //   "https://cdn.jsdelivr.net/npm/ace-builds@1.4.3/src-noconflict/"
-    // )
     this.editor.setTheme("ace/theme/monokai");
     this.editor.session.setMode("ace/mode/python");
   },
