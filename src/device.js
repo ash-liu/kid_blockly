@@ -24,6 +24,17 @@ function sleep(milliseconds) {
     } while (currentDate - date < milliseconds);
 }
 
+function print_by_line(in_message) {
+    var splted_message = in_message.split('\n');
+    if (splted_message.length > 1) {
+        splted_message.splice(0, splted_message.length-1).forEach((e,i) => {
+            console.log(e);
+        });
+        return splted_message[0];  // 打印后剩余的字符串
+    }
+    return in_message;
+}
+
 // 
 // 设备操作类，用于实现与设备端的操作，目前操作的interface也包含在里面
 // 
@@ -33,6 +44,7 @@ export default class Device {
             port: null,
             reader: null,
             inputDone: null,
+            in_message: "",
 
             write: function (port, data) {
                 var encoder = new TextEncoder();
@@ -49,6 +61,7 @@ export default class Device {
             ws: null,
             ip: "192.168.1.8",
             port: 8266,
+            in_message: "",
 
             write: function (ws, data) {
                 ws.send(data);
@@ -240,7 +253,10 @@ export default class Device {
         while (true) {
             const { value, done } = await this.port_interface.reader.read();
             if (value) {
-                // log.textContent += value + "\n";
+                // console.log('serial get:', value);  // 直接打印，不分行
+                // 分行打印
+                this.port_interface.in_message += value;
+                this.port_interface.in_message = print_by_line(this.port_interface.in_message);
             }
             if (done) {
                 console.log("[readLoop] DONE", done);
@@ -259,9 +275,13 @@ export default class Device {
             this.ws_interface.ws.onmessage = function (event) {
                 if (event.data instanceof ArrayBuffer) {
                     var data = new Uint8Array(event.data);
-                    console.log('ws get:', data);
+                    console.log('ws arraybuffer get:', data);
                 }
-            };
+                // console.log('ws get:', event.data);  // 直接打印，不分行
+                // 分行打印
+                this.ws_interface.in_message += event.data;
+                this.ws_interface.in_message = print_by_line(this.ws_interface.in_message);
+            }.bind(this);
         }.bind(this);
 
         //设置标志位
