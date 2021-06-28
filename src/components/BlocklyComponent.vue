@@ -405,8 +405,7 @@ export default {
         },
         callback: function () {
           console.log("downlaod");
-          var xml = Blockly.Xml.workspaceToDom(_this.workspace);
-          const blob = new Blob([Blockly.Xml.domToText(xml)]);
+          const blob = new Blob([_this.readWorkspace()]);
           let link = document.createElement("a");
           link.download = "project.xml";
           link.href = URL.createObjectURL(blob);
@@ -437,18 +436,27 @@ export default {
 
     // 处理上传的文件
     uploadFinish(event) {
-      // const selectedFile = this.$refs.uplaod.files[0];
-      // const selectedFile = document.getElementById('uplaod').files[0];
       const selectedFile = event.target.files[0]
       var reader = new FileReader();
       reader.readAsText(selectedFile);
       var _this=this;
       reader.onload = function () {
-        _this.workspace.clear();    // 清空当前的内容
-        var xml = Blockly.Xml.textToDom(this.result);
-        Blockly.Xml.domToWorkspace(xml, _this.workspace);
+        _this.writeWorkspace(this.result);
       };
     },
+
+    // 写入工作区的内容
+    writeWorkspace(content) {
+      this.workspace.clear();    // 清空当前的内容
+      var xml = Blockly.Xml.textToDom(content);
+      Blockly.Xml.domToWorkspace(xml, this.workspace);
+    },
+
+    // 读取工作区的内容
+    readWorkspace() {
+      var xml = Blockly.Xml.workspaceToDom(this.workspace);
+      return Blockly.Xml.domToText(xml);
+    }
   },
   mounted() {
     this.registerContext();

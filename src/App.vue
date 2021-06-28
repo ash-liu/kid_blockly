@@ -1,10 +1,115 @@
 <template>
   <div id="app">
+    <!-- 发布项目的模态框 -->
+    <div
+      class="modal fade"
+      id="shareLayer"
+      data-bs-backdrop="static"
+      data-bs-keyboard="false"
+      tabindex="-1"
+      aria-labelledby="staticBackdropLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="staticBackdropLabel">发布项目</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="input-group mb-3">
+              <span class="input-group-text">项目名称</span>
+              <input
+                type="text"
+                class="form-control"
+                placeholder="输入项目名称"
+                v-model="share_project_name"
+                @keydown.enter="onShareClicked"
+              />
+            </div>
+
+            <div class="input-group mb-3">
+              <span class="input-group-text">允许修改</span>
+              <div class="input-group-text">
+                <input
+                  class="form-check-input mt-0"
+                  type="checkbox"
+                  v-model="share_project_writeable"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              取消
+            </button>
+            <button type="button" class="btn btn-primary" @click="onShareClicked">确定</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 获取项目的模态框 -->
+    <div
+      class="modal fade"
+      id="fetchLayer"
+      data-bs-backdrop="static"
+      data-bs-keyboard="false"
+      tabindex="-1"
+      aria-labelledby="staticBackdropLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="staticBackdropLabel">获取项目</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="input-group mb-3">
+              <span class="input-group-text">项目名称</span>
+              <input
+                type="text"
+                class="form-control"
+                placeholder="输入项目名称"
+                v-model="share_project_name"
+                @keydown.enter="onFetchClicked"
+              />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              取消
+            </button>
+            <button type="button" class="btn btn-primary" @click="onFetchClicked">确定</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <nav>
       <div id="navigation-bar">
         <span class="logo-container">
           <div id="nav-projects">
-            <div id="nav-back-arrow">❮</div>
+            <!-- <div id="nav-back-arrow">❮</div> -->
             <img
               class="logo"
               src="./assets/piper_make_logo.svg"
@@ -17,27 +122,45 @@
         <!-- 串口与wifi选择区 -->
         <div class="interface-select">
           <i
+            id="icon_serial"
             class="fa fa-usb fa-2x"
-            aria-hidden="true"
             :style="{ color: usbColor }"
             @click="do_interface_select('serial')"
           ></i>
           <div style="width: 15px"></div>
           <i
+            id="icon_ws"
             class="fa fa-wifi fa-2x"
-            aria-hidden="true"
             :style="{ color: wifiColor }"
             @click="do_interface_select('ws')"
           ></i>
-          <div style="width: 5px"></div>
           <input
             :disabled="device.deviceConnectFlag"
             v-show="interface_select != 'serial'"
             v-model="ip_input"
-            style="height:25px"
-            placeholder='输入IP地址'
+            type="text"
+            class="form-control"
+            placeholder="输入IP地址"
             @keydown.enter="doConnect"
           />
+        </div>
+
+        <!-- 分享与载入区 -->
+        <div style="width: 15px"></div>
+        <div class="share-import-area">
+          <!-- 分享 -->
+          <i
+            type="button"
+            class="fa fa-paper-plane fa-2x"
+            data-bs-toggle="modal"
+            data-bs-target="#shareLayer"
+          ></i>
+          <div style="width: 15px"></div>
+          <i
+            class="fa fa-arrow-circle-down fa-2x"
+            data-bs-toggle="modal"
+            data-bs-target="#fetchLayer"
+          ></i>
         </div>
       </div>
     </nav>
@@ -59,6 +182,7 @@
           </div>
         </div>
       </div>
+
       <div class="connect-control" @click="doConnect">
         <div
           id="device-connect"
@@ -177,6 +301,10 @@
  * @author samelh@google.com (Sam El-Husseini)
  */
 
+import "bootstrap/dist/css/bootstrap.min.css";
+// import "bootstrap/dist/js/bootstrap.min.js";
+import {Modal, Tooltip, Toast, Popover } from "bootstrap";
+
 import BlocklyComponent from "./components/BlocklyComponent.vue";
 import "./prompt";
 
@@ -187,9 +315,14 @@ import BlocklyPY from "blockly/python";
 
 import Device from "./device";
 
+const AV = require('leancloud-storage');
+const { Query, User } = AV;
+// localStorage.setItem('debug', 'leancloud*');
+// AV.debug.enable();  // 启用
+
 export default {
   name: "app",
-  props: ['source'],      // "serial" or "ws"
+  props: ["source"], // "serial" or "ws"
   components: {
     BlocklyComponent,
   },
@@ -204,6 +337,9 @@ export default {
       code: "",
       isTabDigtalViewSelected: false,
       isTabPythonSelected: false,
+
+      share_project_name: "",
+      share_project_writeable: true,
     };
   },
   computed: {
@@ -244,14 +380,18 @@ export default {
         if (i == "serial") {
           // 只有当在线模式下才会跳转到https
           if (window.location.host == "lstabc.com") {
-            window.location.replace("https://" + window.location.host + "/serial.html");
+            window.location.replace(
+              "https://" + window.location.host + "/serial.html"
+            );
+          } else {
+            window.location.replace(
+              "http://" + window.location.host + "/serial.html"
+            );
           }
-          else {
-            window.location.replace("http://" + window.location.host + "/serial.html");
-          }
-        }
-        else {
-          window.location.replace("http://" + window.location.host + "/ws.html");
+        } else {
+          window.location.replace(
+            "http://" + window.location.host + "/ws.html"
+          );
         }
       }
     },
@@ -292,6 +432,79 @@ export default {
       this.code = BlocklyPY.workspaceToCode(this.$refs["foo"].workspace);
       this.editor.setValue(this.code);
     },
+
+    // 点击分享的处理
+    onShareClicked() {
+      if (this.share_project_name == "") {
+        alert("输入项目名称.");
+        return;
+      }
+      const query = new AV.Query('works');
+      query.includeACL(true);
+      query.equalTo('alias', this.share_project_name);
+      query.first().then((work) => {
+        if (work) {
+          if (work.attributes.ACL.getPublicWriteAccess()) {
+            // 读取工作区并保存
+            work.set('work_content', this.$refs["foo"].readWorkspace());
+            work.save()
+
+            // 关闭模态框
+            var tmp_modal = document.getElementById('shareLayer')
+            var modal = Modal.getInstance(tmp_modal) // Returns a Bootstrap modal instance
+            modal.hide()
+          }
+          else {
+            alert("项目已经存在且不允许修改，请换一个名字.");
+          }
+        }
+        else {
+          // console.log(work.attributes.work_content);
+          const worksObject = AV.Object.extend('works');
+          const new_work = new worksObject();
+          new_work.set('alias', this.share_project_name);
+          new_work.set('work_content', this.$refs["foo"].readWorkspace());
+
+          // 设置ACL权限
+          var acl = new AV.ACL();
+          acl.setPublicReadAccess(true);
+          acl.setPublicWriteAccess(this.share_project_writeable);
+          new_work.setACL(acl);
+          new_work.save()
+
+          // 关闭模态框
+          var tmp_modal = document.getElementById('shareLayer')
+          var modal = Modal.getInstance(tmp_modal) // Returns a Bootstrap modal instance
+          modal.hide()
+        }
+      });
+    },
+
+    // 点击获取的处理
+    onFetchClicked() {
+      if (this.share_project_name == "") {
+        alert("输入项目名称.");
+        return;
+      }
+      const query = new AV.Query('works');
+      query.equalTo('alias', this.share_project_name);
+      query.first().then((work) => {
+        if (work) {
+          if (work.attributes.work_content) {
+            // 写入工作区
+            this.$refs["foo"].writeWorkspace(work.attributes.work_content);
+
+            // 关闭模态框
+            var tmp_modal = document.getElementById('fetchLayer')
+            var modal = Modal.getInstance(tmp_modal) // Returns a Bootstrap modal instance
+            modal.hide()
+          }
+        }
+        else {
+          alert("项目不存在.");
+        }
+      })
+    },
   },
 
   mounted() {
@@ -302,6 +515,13 @@ export default {
     });
     this.editor.setTheme("ace/theme/monokai");
     this.editor.session.setMode("ace/mode/python");
+
+    // 初始化av cloud
+    AV.init({
+      appId: "iSOPNtkCdySPR0sCe3hnJrAM-gzGzoHsz",
+      appKey: "9IGUomQYHnw2hdBPfDbO76xq",
+      serverURL: "https://isopntkc.lc-cn-n1-shared.com"
+    });
   },
 };
 </script>
@@ -331,6 +551,8 @@ body {
   box-sizing: border-box;
 }
 
+/* --------------------------------------- */
+/* 导航部分的css */
 nav {
   display: block;
   width: 100%;
@@ -347,7 +569,7 @@ nav {
   align-items: center;
   justify-content: flex-start;
   font-weight: 700;
-  background-color: #333;
+  background-color: white;
 }
 
 #navigation-bar div {
@@ -361,25 +583,16 @@ nav {
   display: flex;
 }
 
-#navigation-bar .interface-select {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  flex-grow: 0;
-  /* align-self: flex-end; */
+#nav-projects {
+  color: #aaa;
+  font-size: 24px;
 }
 
-#navigation-bar .interface_icon_margin {
-  display: flex;
-  flex-basis: 10px;
-  flex-grow: 0;
+#nav-projects {
+  margin: 0 15px;
 }
 
-#navigation-bar i {
-  display: flex;
-  flex-grow: 0;
-}
-
+/* logo区域 */
 #navigation-bar > .logo-container {
   flex-grow: 0;
   text-align: left;
@@ -392,46 +605,50 @@ nav {
   margin: 6px 20px;
 }
 
-#nav-projects {
-  color: #aaa;
-  font-size: 24px;
+/* nav里面的图标 */
+#navigation-bar i {
+  display: flex;
+  flex-grow: 0;
+  color: #888;
 }
 
-#nav-projects,
-#nav-settings {
-  margin: 0 15px;
-}
-
-#nav-projects:focus,
-#nav-projects:hover,
-#nav-settings:focus,
-#nav-settings:hover {
+#navigation-bar i:focus,
+#navigation-bar i:hover {
   transform: scale(1.1);
   transition: transform 0.25s;
+  color: #3298dc;
 }
 
-#nav-settings:focus,
-#nav-settings:hover {
-  font-weight: 700;
+/* interface选择区 */
+#navigation-bar .interface-select {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-grow: 0;
 }
 
-#nav-sidebar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 340px;
-  height: 100vh;
-  z-index: 550;
-  background: #fff;
-  padding: 20px 50px;
-  text-align: center;
+#navigation-bar .interface-select input {
+  height: 26px;
+  margin-left: 5px;
+  margin-bottom: 0;
 }
 
-#nav-sidebar p {
-  font-size: 21px;
-  color: #333;
+#navigation-bar .interface_icon_margin {
+  display: flex;
+  flex-basis: 10px;
+  flex-grow: 0;
 }
 
+/* 分享区 */
+#navigation-bar .share-import-area {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-grow: 0;
+}
+
+/* --------------------------------------- */
+/* 左侧控制区 */
 .device-button {
   width: 160px;
   height: 55px;
@@ -514,11 +731,6 @@ nav {
   margin-top: 8px;
 }
 
-.icon.inactive {
-  background: #eee;
-  color: #888;
-}
-
 .connect-control {
   position: absolute;
   z-index: 90;
@@ -528,6 +740,8 @@ nav {
   padding: 0 10px 10px 0;
 }
 
+/* ------------------------------------------------- */
+/* 下方展示区 */
 .tabs_closed {
   width: calc(100vw - 175px);
 }
@@ -618,19 +832,6 @@ nav {
   left: 20px;
   top: 0;
   margin-top: 10px;
-}
-
-#digital-view-toggle {
-  position: absolute;
-  top: 70px;
-  left: 20px;
-  height: 40px;
-  padding: 0;
-  border-radius: 50px;
-  border: 2px solid #000;
-  width: 22px;
-  background: 0 0;
-  margin-top: 20px;
 }
 
 #digital-view-module-image {
