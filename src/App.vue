@@ -4,16 +4,12 @@
     <div
       class="modal fade"
       id="shareLayer"
-      data-bs-backdrop="static"
-      data-bs-keyboard="false"
       tabindex="-1"
-      aria-labelledby="staticBackdropLabel"
-      aria-hidden="true"
     >
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="staticBackdropLabel">发布项目</h5>
+            <h5 class="modal-title">发布项目</h5>
             <button
               type="button"
               class="btn-close"
@@ -62,16 +58,12 @@
     <div
       class="modal fade"
       id="fetchLayer"
-      data-bs-backdrop="static"
-      data-bs-keyboard="false"
       tabindex="-1"
-      aria-labelledby="staticBackdropLabel"
-      aria-hidden="true"
     >
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="staticBackdropLabel">获取项目</h5>
+            <h5 class="modal-title">获取项目</h5>
             <button
               type="button"
               class="btn-close"
@@ -271,7 +263,7 @@
     <BlocklyComponent
       id="blockly"
       ref="foo"
-      style="left: 0px; top: 55px; width: 100%; height: 949px"
+      style="width: 100%; height: calc(100vh - 60px); border: none"
       @blocklyUpdate="blocklyUpdate"
     ></BlocklyComponent>
   </div>
@@ -303,7 +295,7 @@
 
 import "bootstrap/dist/css/bootstrap.min.css";
 // import "bootstrap/dist/js/bootstrap.min.js";
-import {Modal, Tooltip, Toast, Popover } from "bootstrap";
+import {Modal, Alert, Tooltip, Toast} from "bootstrap";
 
 import BlocklyComponent from "./components/BlocklyComponent.vue";
 import "./prompt";
@@ -436,7 +428,12 @@ export default {
     // 点击分享的处理
     onShareClicked() {
       if (this.share_project_name == "") {
-        alert("输入项目名称.");
+        this.$swal({
+          title: '错误', 
+          text: '项目名称不能空白', 
+          icon: 'error', 
+          timer: 5000
+        });
         return;
       }
       const query = new AV.Query('works');
@@ -455,7 +452,12 @@ export default {
             modal.hide()
           }
           else {
-            alert("项目已经存在且不允许修改，请换一个名字.");
+            this.$swal({
+              title: '错误', 
+              text: '项目已经存在且不允许修改，请换一个名字', 
+              icon: 'warning', 
+              timer: 5000
+            });
           }
         }
         else {
@@ -483,7 +485,12 @@ export default {
     // 点击获取的处理
     onFetchClicked() {
       if (this.share_project_name == "") {
-        alert("输入项目名称.");
+        this.$swal({
+          title: '错误', 
+          text: '项目名称不能空白', 
+          icon: 'error', 
+          timer: 5000
+        });
         return;
       }
       const query = new AV.Query('works');
@@ -501,7 +508,12 @@ export default {
           }
         }
         else {
-          alert("项目不存在.");
+          this.$swal({
+            title: '警告', 
+            text: '项目不存在', 
+            icon: 'warning', 
+            timer: 5000
+          });
         }
       })
     },
@@ -527,22 +539,10 @@ export default {
 </script>
 
 <style>
-#app {
-  font-family: "Avenir", Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
-}
 
 html,
 body {
-  font-family: Montserrat, sans-serif;
-  font-size: 16px;
-  color: #777;
-  padding: 0;
-  margin: 0;
   height: 100vh;
-  overflow-y: auto;
 }
 
 /* begin here!!!!!!!!!!!!!!!!! */

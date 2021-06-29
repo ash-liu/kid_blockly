@@ -489,6 +489,9 @@ export default {
         item.setAttribute("width", 0);
         item.setAttribute("height", 0);
       });
+    
+    // 去掉工作区外圈的边框
+    document.querySelector(".blocklyMainBackground").style.strokeWidth = 0;
 
     // 注入后，从local storage导入工作内容
     setTimeout(BlocklyStorage.restoreBlocks, 0);
