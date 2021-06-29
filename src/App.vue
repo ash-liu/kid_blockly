@@ -143,7 +143,7 @@
           <!-- 分享 -->
           <i
             type="button"
-            class="fa fa-paper-plane fa-2x"
+            class="fa fa-plane fa-2x"
             data-bs-toggle="modal"
             data-bs-target="#shareLayer"
           ></i>
