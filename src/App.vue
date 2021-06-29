@@ -142,8 +142,7 @@
         <div class="share-import-area">
           <!-- 分享 -->
           <i
-            type="button"
-            class="fa fa-plane fa-2x"
+            class="fa fa-paper-plane fa-2x"
             data-bs-toggle="modal"
             data-bs-target="#shareLayer"
           ></i>
@@ -154,6 +153,7 @@
             data-bs-target="#fetchLayer"
           ></i>
         </div>
+
       </div>
     </nav>
 
