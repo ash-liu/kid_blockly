@@ -263,7 +263,8 @@
     <BlocklyComponent
       id="blockly"
       ref="foo"
-      style="width: 100%; height: calc(100vh - 60px); border: none"
+      style="width: 100%;"
+      :style="{height: blocklyHeight}"
       @blocklyUpdate="blocklyUpdate"
     ></BlocklyComponent>
   </div>
@@ -332,6 +333,9 @@ export default {
 
       share_project_name: "",
       share_project_writeable: true,
+
+      // 动态的指定blockly的高度，解决safari与chrome对vh单位的不同定义
+      blocklyHeight: window.innerHeight - 60 + 'px'
     };
   },
   computed: {
