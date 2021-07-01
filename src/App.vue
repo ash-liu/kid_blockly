@@ -24,7 +24,7 @@
                 type="text"
                 class="form-control"
                 placeholder="输入项目名称"
-                v-model="share_project_name"
+                v-model.trim="share_project_name"
                 @keydown.enter="onShareClicked"
               />
             </div>
@@ -78,7 +78,7 @@
                 type="text"
                 class="form-control"
                 placeholder="输入项目名称"
-                v-model="share_project_name"
+                v-model.trim="share_project_name"
                 @keydown.enter="onFetchClicked"
               />
             </div>
@@ -129,7 +129,7 @@
           <input
             :disabled="device.deviceConnectFlag"
             v-show="interface_select != 'serial'"
-            v-model="ip_input"
+            v-model.trim="ip_input"
             type="text"
             class="form-control"
             placeholder="输入IP地址"
@@ -321,19 +321,23 @@ export default {
   },
   data() {
     return {
+      // device相关的参数
       interface_select: window.location.pathname.slice(1, -5),
       ip_input: "",
       device: new Device(this.interface_select),
-      pythonExpandFlag: false, // python code是否展开
 
+      //下方展示区的参数
       editor: null,
       code: "",
       isTabDigtalViewSelected: false,
       isTabPythonSelected: false,
+      pythonExpandFlag: false, // python code是否展开
 
+      // 分享相关的参数
       share_project_name: "",
       share_project_writeable: true,
 
+      // 其他
       // 动态的指定blockly的高度，解决safari与chrome对vh单位的不同定义
       blocklyHeight: window.innerHeight - 60 + 'px'
     };
@@ -410,9 +414,11 @@ export default {
       }
     },
 
+    // 开始/结束执行程序
     doStart() {
       this.device.start(this.code);
     },
+
 
     onTabDigtalViewClicked() {
       this.isTabDigtalViewSelected = !this.isTabDigtalViewSelected;
@@ -424,6 +430,7 @@ export default {
       this.isTabDigtalViewSelected = false;
     },
 
+    // 子组件更新事件处理
     blocklyUpdate() {
       this.code = BlocklyPY.workspaceToCode(this.$refs["foo"].workspace);
       this.editor.setValue(this.code);
@@ -532,7 +539,7 @@ export default {
     this.editor.setTheme("ace/theme/monokai");
     this.editor.session.setMode("ace/mode/python");
 
-    // 初始化av cloud
+    // 初始化av cloud，相关配置参考leancloud的文档
     AV.init({
       appId: "iSOPNtkCdySPR0sCe3hnJrAM-gzGzoHsz",
       appKey: "9IGUomQYHnw2hdBPfDbO76xq",
@@ -548,8 +555,6 @@ html,
 body {
   height: 100vh;
 }
-
-/* begin here!!!!!!!!!!!!!!!!! */
 
 * {
   box-sizing: border-box;

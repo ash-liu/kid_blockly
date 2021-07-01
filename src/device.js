@@ -284,6 +284,11 @@ export default class Device {
             }.bind(this);
         }.bind(this);
 
+        this.ws_interface.ws.onclose = function() {
+            this.closeWs();
+            this.on_disconnect()
+        }.bind(this);
+
         //设置标志位
         this._deviceConnectFlag = true;
     }
