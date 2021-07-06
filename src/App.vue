@@ -545,6 +545,10 @@ export default {
       appKey: "9IGUomQYHnw2hdBPfDbO76xq",
       serverURL: "https://isopntkc.lc-cn-n1-shared.com"
     });
+
+    // 把vue对象赋值给window，方便调试使用
+    window.vue = this;
+    window.BlocklyPY = BlocklyPY;
   },
 };
 </script>

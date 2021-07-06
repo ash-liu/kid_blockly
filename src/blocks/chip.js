@@ -138,7 +138,8 @@ BlocklyPY.pin_mode = function (a) {
   var b = a.getFieldValue("GPIO");
   var c = a.getFieldValue("NAME");
   var d = a.getFieldValue("MODE");
-  a.disabled || (BlocklyPY.definitions_.import_machine_pin = "from machine import Pin");
+  a.disabled || (BlocklyPY.definitions_.import_machine_pin = "from machine import Pin",
+    BlocklyPY.definitions_[gpio_pin_prefix + b] = "\n" + gpio_pin_prefix + b + " = None");
   return gpio_pin_prefix + b + " = Pin(" + b + ", " + c +  ", " + d + ")\n"
 };
 
@@ -161,7 +162,8 @@ Blockly.Blocks.pin_on_off = {
 BlocklyPY.pin_on_off = function (a) {
   var b = a.getFieldValue("GPIO");
   var c = a.getFieldValue("NAME");
-  a.disabled || (BlocklyPY.definitions_.import_machine_pin = "from machine import Pin");
+  a.disabled || (BlocklyPY.definitions_.import_machine_pin = "from machine import Pin",
+    BlocklyPY.definitions_[gpio_pin_prefix + b] = "\n" + gpio_pin_prefix + b + " = None");
   return gpio_pin_prefix + b + ".value(" + c + ")\n"
 };
 
@@ -185,7 +187,8 @@ Blockly.Blocks.pin_check = {
 BlocklyPY.pin_check = function (a) {
   var b = a.getFieldValue("GPIO");
   var c = a.getFieldValue("CHECKFOR");
-  a.disabled || (BlocklyPY.definitions_.import_machine_pin = "from machine import Pin");
+  a.disabled || (BlocklyPY.definitions_.import_machine_pin = "from machine import Pin",
+    BlocklyPY.definitions_[gpio_pin_prefix + b] = "\n" + gpio_pin_prefix + b + " = None");
   return [("0" === c[0] ? "not " : "") + gpio_pin_prefix + b + ".value()", BlocklyPY.ORDER_NONE]
 };
 
@@ -205,6 +208,6 @@ Blockly.Python.pin_analog_read = function (a) {
   var b = a.getFieldValue("GPIO");
   a.disabled || (BlocklyPY.definitions_.import_machine_pin = "from machine import Pin",
     BlocklyPY.definitions_.import_machine_adc = "from machine import ADC",
-    Blockly.Python.definitions_["analog_pin_" + b] = "\n" + analog_pin_prefix + b + " = ADC(Pin(" + b + '))');
+    BlocklyPY.definitions_[analog_pin_prefix + b] = "\n" + analog_pin_prefix + b + " = ADC(Pin(" + b + '))');
   return [analog_pin_prefix + b + ".read_u16() * 3.3 / 65535", Blockly.Python.ORDER_ATOMIC]
 };
