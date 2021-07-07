@@ -69,6 +69,7 @@ Blockly.Blocks.pins.digital.push(["25 (LED)", "25"]);
 
 Blockly.Blocks.pins.analog = [["A0", "26"], ["A1", "27"], ["A2", "28"]];
 
+
 // Blockly.Blocks['chip_start'] = {
 //   init: function() {
 //     this.appendDummyInput()
@@ -138,9 +139,16 @@ BlocklyPY.pin_mode = function (a) {
   var b = a.getFieldValue("GPIO");
   var c = a.getFieldValue("NAME");
   var d = a.getFieldValue("MODE");
-  a.disabled || (BlocklyPY.definitions_.import_machine_pin = "from machine import Pin",
-    BlocklyPY.definitions_[gpio_pin_prefix + b] = "\n" + gpio_pin_prefix + b + " = None");
-  return gpio_pin_prefix + b + " = Pin(" + b + ", " + c +  ", " + d + ")\n"
+  if (!a.disabled) {
+    BlocklyPY.definitions_.import_machine_pin = "from machine import Pin";
+    BlocklyPY.definitions_[gpio_pin_prefix + b] = "\n" + gpio_pin_prefix + b + " = None";
+    // if (a.workspace.getVariable(gpio_pin_prefix + b) == null) {
+    //   console.log("getVariable fail, create new one.");
+    //   a.workspace.createVariable(gpio_pin_prefix + b); 
+    //   new Blockly.VariableModel(a.workspace, gpio_pin_prefix + b);
+    // }
+  }
+  return  "global " + gpio_pin_prefix + b + '\n' +  gpio_pin_prefix + b + " = Pin(" + b + ", " + c +  ", " + d + ")\n"
 };
 
 // on-off
